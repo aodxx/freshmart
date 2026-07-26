@@ -1,5 +1,6 @@
 import { supabase, money, toast } from './supabaseClient.js';
 import { addToCart } from './cart.js';
+import { initLiff } from './liffClient.js';
 
 const grid = document.querySelector('[data-products]');
 const search = document.querySelector('[data-search]');
@@ -48,4 +49,6 @@ export async function loadProducts() {
 
 search?.addEventListener('input', render);
 category?.addEventListener('change', render);
-loadProducts();
+Promise.all([initLiff(), loadProducts()]).catch(error => {
+  Swal.fire('เปิดร้านไม่สำเร็จ', error.message, 'error');
+});

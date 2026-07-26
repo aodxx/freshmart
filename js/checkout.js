@@ -1,60 +1,96 @@
-import { supabase, money, requireUser, toast } from './supabaseClient.js';
-import { getCart, clearCart, updateQuantity } from './cart.js';
-import { CONFIG } from './config.js';
+import { money, toast } from './supabaseClient.js';
+import { getCart, clearCart } from './cart.js';
+import { initLiff, liffApi, uploadSlip } from './liffClient.js';
 
-const list = document.querySelector('[data-cart-items]');
-const total = document.querySelector('[data-cart-total]');
 const form = document.querySelector('[data-checkout]');
+const subtotal = getCart().reduce((sum, item) => sum + item.price * item.quantity, 0);
+let liffState;
 
-const renderCart = () => {
-  const cart = getCart();
-  if (list) list.innerHTML = cart.length ? cart.map(item => `
-    <div class="d-flex align-items-center gap-3 border-bottom py-3">
-      <div class="flex-grow-1"><strong>${item.name}</strong><div class="text-secondary">${money(item.price)}</div></div>
-      <input class="form-control form-control-sm qty" type="number" min="0" max="${item.stock}" value="${item.quantity}" data-qty="${item.product_id}">
-      <strong>${money(item.price * item.quantity)}</strong>
-    </div>`).join('') : '<div class="text-center text-secondary py-5">ตะกร้าว่าง</div>';
-  if (total) total.textContent = money(cart.reduce((sum, item) => sum + item.price * item.quantity, 0));
-  list?.querySelectorAll('[data-qty]').forEach(input => input.onchange = () => {
-    updateQuantity(input.dataset.qty, input.value);
-    renderCart();
-  });
-};
+function refreshCheckout() {
+  const fulfillment = form.fulfillment_method.value;
+  const payment = fulfillment === 'pickup' ? 'pay_at_store' : form.payment_method.value;
+  document.querySelector('[data-delivery-fields]').hidden = fulfillment !== 'delivery';
+  document.querySelector('[data-pickup-fields]').hidden = fulfillment !== 'pickup';
+  document.querySelector('[data-payment-section]').hidden = fulfillment !== 'delivery';
+  document.querySelector('[data-transfer-drawer]').hidden = payment !== 'bank_transfer';
+  document.querySelector('[data-promptpay-drawer]').hidden = payment !== 'promptpay';
+  document.querySelector('[data-slip-row]').hidden = !['bank_transfer', 'promptpay'].includes(payment);
+
+  const settings = liffState?.settings;
+  const fee = fulfillment === 'delivery' && settings && subtotal < Number(settings.free_delivery_minimum)
+    ? Number(settings.delivery_fee) : 0;
+  document.querySelector('[data-checkout-subtotal]').textContent = money(subtotal);
+  document.querySelector('[data-checkout-fee]').textContent = fee ? money(fee) : 'ฟรี';
+  document.querySelector('[data-cart-total]').textContent = money(subtotal + fee);
+}
+
+document.querySelectorAll('[data-copy]').forEach(button => button.onclick = async () => {
+  await navigator.clipboard.writeText(button.dataset.copy);
+  toast('success', 'คัดลอกแล้ว');
+});
+form?.querySelectorAll('[name="fulfillment_method"],[name="payment_method"]')
+  .forEach(input => input.addEventListener('change', refreshCheckout));
 
 form?.addEventListener('submit', async event => {
   event.preventDefault();
-  const user = await requireUser();
-  if (!user) return;
-  const cart = getCart();
-  if (!cart.length) return toast('warning', 'ตะกร้าว่าง');
-  const values = Object.fromEntries(new FormData(form));
-  const { data: orderId, error } = await supabase.rpc('place_order', {
-    p_items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
-    p_payment_method: values.payment_method,
-    p_recipient_name: values.recipient_name,
-    p_recipient_phone: values.recipient_phone,
-    p_shipping_address: values.shipping_address,
-    p_customer_note: values.customer_note || null,
-    p_coupon_code: values.coupon_code || null
-  });
-  if (error) return toast('error', error.message);
-
-  const slip = form.querySelector('[name="slip"]')?.files?.[0];
-  if (values.payment_method !== 'cash' && slip) {
-    const path = `${user.id}/${orderId}/${crypto.randomUUID()}-${slip.name.replace(/[^a-zA-Z0-9._-]/g, '')}`;
-    const uploaded = await supabase.storage.from(CONFIG.STORAGE_BUCKET).upload(path, slip);
-    if (uploaded.error) return toast('error', 'สร้างออเดอร์แล้ว แต่อัปโหลดสลิปไม่สำเร็จ');
-    await supabase.from('payments').update({
-      slip_path: path, status: 'submitted', submitted_at: new Date().toISOString()
-    }).eq('order_id', orderId);
+  const button = form.querySelector('[type="submit"]');
+  button.disabled = true;
+  try {
+    const values = Object.fromEntries(new FormData(form));
+    const fulfillment = values.fulfillment_method;
+    const payment = fulfillment === 'pickup' ? 'pay_at_store' : values.payment_method;
+    const slip = form.querySelector('[name="slip"]').files[0];
+    if (['bank_transfer', 'promptpay'].includes(payment) && !slip) {
+      throw new Error('กรุณาแนบสลิปการชำระเงิน');
+    }
+    const result = await liffApi('place_order', {
+      order: {
+        items: getCart().map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+        fulfillment_method: fulfillment,
+        payment_method: payment,
+        recipient_name: liffState.customer.display_name,
+        recipient_phone: liffState.customer.phone,
+        shipping_address: fulfillment === 'delivery' ? values.shipping_address : null,
+        pickup_at: fulfillment === 'pickup' ? new Date(values.pickup_at).toISOString() : null,
+        customer_note: values.customer_note || null,
+        coupon_code: values.coupon_code || null
+      }
+    });
+    if (slip) await uploadSlip(result.order.id, slip);
+    clearCart();
+    if (payment === 'cash') {
+      await Swal.fire({
+        icon: 'success',
+        title: 'สั่งซื้อเรียบร้อยแล้ว',
+        html: `กรุณาเตรียมเงินสดจำนวน <strong>${money(result.order.total_amount)}</strong><br>สำหรับชำระเมื่อได้รับสินค้า<br><small class="text-secondary">ทางร้านจะติดต่อกลับเพื่อยืนยันการจัดส่ง ขอบคุณที่ใช้บริการร้านชำเจ๊ดีค่ะ</small>`,
+        confirmButtonText: 'ดูคำสั่งซื้อ'
+      });
+    } else if (fulfillment === 'pickup') {
+      await Swal.fire({
+        icon: 'success',
+        title: 'รับคำสั่งซื้อเรียบร้อยแล้ว',
+        text: 'ทางร้านกำลังเตรียมสินค้า และจะแจ้งให้ทราบเมื่อพร้อมรับ กรุณารอข้อความยืนยันก่อนเดินทางมาที่ร้านค่ะ',
+        confirmButtonText: 'ดูคำสั่งซื้อ'
+      });
+    } else {
+      await Swal.fire('สั่งซื้อสำเร็จ', 'ร้านได้รับออเดอร์และสลิปแล้ว กรุณารอการตรวจสอบ', 'success');
+    }
+    location.href = 'orders.html';
+  } catch (error) {
+    toast('error', error.message);
+  } finally {
+    button.disabled = false;
   }
-  const notification = await supabase.functions.invoke('line-notify', {
-    body: { orderId, event: 'new_order' }
-  });
-  if (notification.error) console.warn('LINE notification failed:', notification.error.message);
-  clearCart();
-  await toast('success', 'สั่งซื้อสำเร็จ');
-  location.href = 'orders.html';
 });
 
-renderCart();
+(async () => {
+  liffState = await initLiff();
+  form.recipient_phone.value = liffState.customer.phone || '';
+  document.querySelector('[data-bank-name]').textContent = liffState.settings.bank_name;
+  document.querySelector('[data-bank-account]').textContent = liffState.settings.bank_account_number;
+  document.querySelector('[data-bank-owner]').textContent = liffState.settings.bank_account_name;
+  document.querySelector('[data-promptpay]').textContent = liffState.settings.promptpay_number;
+  document.querySelectorAll('[data-copy-bank]').forEach(el => el.dataset.copy = liffState.settings.bank_account_number);
+  document.querySelectorAll('[data-copy-promptpay]').forEach(el => el.dataset.copy = liffState.settings.promptpay_number);
+  refreshCheckout();
+})().catch(error => Swal.fire('เปิด Checkout ไม่สำเร็จ', error.message, 'error'));
