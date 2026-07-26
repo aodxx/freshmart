@@ -23,6 +23,12 @@ async function load() {
 async function updateOrder(id, patch) {
   const { error } = await supabase.from('orders').update(patch).eq('id', id);
   if (error) return toast('error', error.message);
+  if (patch.status) {
+    const notification = await supabase.functions.invoke('line-notify', {
+      body: { orderId: id, event: 'status_update' }
+    });
+    if (notification.error) console.warn('LINE notification failed:', notification.error.message);
+  }
   toast('success', 'อัปเดตแล้ว');
 }
 async function confirmPayment(orderId, adminId) {
