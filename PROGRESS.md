@@ -51,6 +51,7 @@
 | โมดูล | สถานะ | รายละเอียดล่าสุด | งานที่ยังเหลือ |
 |---|---:|---|---|
 | GitHub Pages | 🧪 | Repository เป็น Public และ deploy จาก `main` | ทดสอบหน้า Production หลังทุก Merge |
+| Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
 | โปรไฟล์ LINE | 🧪 | ดึงชื่อและรูปโปรไฟล์ พร้อมบันทึกประวัติลูกค้า | เบอร์โทรไม่สามารถดึงจาก LIFF Profile โดยตรง ต้องให้ลูกค้ากรอก/ยืนยัน |
 | Supabase Auth | ✅ | ใช้ Email/Password สำหรับผู้ดูแลระบบ | เปิด Leaked Password Protection เมื่อแผน/การตั้งค่ารองรับ |
@@ -180,6 +181,16 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 27 กรกฎาคม 2026 — Supabase Free Plan Health Check
+
+- เพิ่ม GitHub Actions Workflow `supabase-health-check.yml`
+- เรียก Supabase REST API ทุก 2 วันเวลา 08:17 น. ตามเวลาไทย
+- อ่านเพียง `store_settings.id` จึงไม่สร้างข้อมูลขยะ
+- ใช้ Publishable Key ที่มีอยู่ใน Frontend และไม่ใช้ `service_role`
+- เพิ่ม Retry, Timeout, HTTP status validation และตรวจรูปแบบ Response
+- รองรับ `workflow_dispatch` สำหรับรันทดสอบด้วยตนเอง
+- หมายเหตุ: GitHub อาจปิด Scheduled Workflow ของ Public Repository ที่ไม่มี Activity 60 วัน
 
 ### 27 กรกฎาคม 2026 — Product Variants & Inventory
 
