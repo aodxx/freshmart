@@ -13,9 +13,11 @@ export const toast = (icon, title) => Swal.fire({
   icon, title, toast: true, position: 'top-end', showConfirmButton: false, timer: 2200
 });
 
+export const appUrl = path => new URL(`${CONFIG.APP_BASE_PATH}${String(path).replace(/^\/+/, '')}`, location.origin).href;
+
 export const requireUser = async () => {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) location.href = '../login.html';
+  if (!user) location.href = appUrl('login.html');
   return user;
 };
 
@@ -23,6 +25,6 @@ export const requireAdmin = async () => {
   const user = await requireUser();
   if (!user) return null;
   const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-  if (data?.role !== 'admin') location.href = '../index.html';
+  if (data?.role !== 'admin') location.href = appUrl('index.html');
   return user;
 };
