@@ -7,8 +7,8 @@ function render() {
   const list = document.querySelector('[data-cart-items]');
   list.innerHTML = cart.length ? cart.map(item => `
     <div class="d-flex align-items-center gap-3 border-bottom py-3">
-      <div class="flex-grow-1"><strong>${item.name}</strong><div class="text-secondary">${money(item.price)}</div></div>
-      <input class="form-control form-control-sm qty" type="number" min="0" max="${item.stock}" value="${item.quantity}" data-qty="${item.product_id}">
+      <div class="flex-grow-1"><strong>${item.name}</strong><div class="text-secondary">${item.variant_name} · ${money(item.price)}</div></div>
+      <input class="form-control form-control-sm qty" type="number" min="0" max="${item.stock}" value="${item.quantity}" data-qty="${item.variant_id}">
       <strong>${money(item.price * item.quantity)}</strong>
     </div>`).join('') : '<div class="text-center text-secondary py-5">ตะกร้าว่าง</div>';
   document.querySelector('[data-cart-total]').textContent =
