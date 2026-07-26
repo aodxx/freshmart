@@ -1,1 +1,17 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin | FreshMart</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="../css/style.css" rel="stylesheet"></head><body><nav class="navbar border-bottom"><div class="container"><strong>FreshMart Admin</strong><a href="../index.html">กลับหน้าร้าน</a></div></nav><main class="container py-4"><h1>จัดการคำสั่งซื้อ</h1><div class="table-responsive bg-white rounded-4 shadow-sm mt-4"><table class="table align-middle mb-0"><thead><tr><th>ออเดอร์</th><th>ยอด</th><th>ชำระ</th><th>สถานะ</th><th>เลขพัสดุ</th><th>สลิป</th></tr></thead><tbody data-admin-orders></tbody></table></div></main><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script type="module" src="../js/admin-orders.js"></script></body></html>
+<!doctype html>
+<html lang="th">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>คำสั่งซื้อ | FreshMart Admin</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="../css/style.css" rel="stylesheet"></head>
+<body class="admin-app">
+  <header class="admin-header"><div class="container admin-header__inner">
+    <a class="brand" href="index.html"><span class="brand__mark">FM</span><span class="brand__name">FreshMart Admin<small class="brand__caption">ศูนย์จัดการร้าน</small></span></a>
+    <nav class="admin-nav"><a class="is-active" href="index.html">คำสั่งซื้อ</a><a href="products.html">สินค้า</a><a href="members.html">ลูกค้า</a><a href="../index.html">เปิดหน้าร้าน ↗</a></nav>
+  </div></header>
+  <main class="container py-4 py-lg-5">
+    <div class="page-heading"><h1>จัดการคำสั่งซื้อ</h1><p>ตรวจการชำระเงินและอัปเดตสถานะจากจุดเดียว</p></div>
+    <div class="admin-table-shell table-responsive">
+      <table class="table align-middle mb-0"><thead><tr><th>ออเดอร์</th><th>ยอด</th><th>ชำระ</th><th>สถานะ</th><th>เลขพัสดุ</th><th>สลิป</th></tr></thead><tbody data-admin-orders></tbody></table>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script type="module" src="../js/admin-orders.js"></script>
+</body>
+</html>
