@@ -48,6 +48,10 @@ form?.addEventListener('submit', async event => {
       slip_path: path, status: 'submitted', submitted_at: new Date().toISOString()
     }).eq('order_id', orderId);
   }
+  const notification = await supabase.functions.invoke('line-notify', {
+    body: { orderId, event: 'new_order' }
+  });
+  if (notification.error) console.warn('LINE notification failed:', notification.error.message);
   clearCart();
   await toast('success', 'สั่งซื้อสำเร็จ');
   location.href = 'orders.html';
