@@ -79,7 +79,7 @@ function render() {
   list.innerHTML = filtered.length ? filtered.map(product => {
     const activeVariants = product.variants.filter(v => v.is_active);
     const low = activeVariants.some(v => v.stock_qty <= v.low_stock_threshold);
-    return `<article class="card border-0 shadow-sm mb-3">
+    return `<article class="card admin-product mb-3">
       <div class="card-body">
         <div class="d-flex gap-3">
           <div class="product-image rounded" style="width:88px;height:88px;flex:none">

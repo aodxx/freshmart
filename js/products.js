@@ -20,18 +20,18 @@ const render = () => {
       <article class="card product-card h-100 border-0">
         <div class="product-image">${p.image_path || p.image_url ? `<img src="${productImageUrl(p.image_path || p.image_url)}" alt="${escapeHtml(p.name)}">` : '<span>🛒</span>'}</div>
         <div class="card-body d-flex flex-column">
-          <small class="text-secondary">${escapeHtml(p.category_name || 'สินค้า')}</small>
-          <h2 class="h6 mt-1">${escapeHtml(p.name)}</h2>
-          <div class="small text-warning">★ ${p.average_rating || '0.00'} (${p.review_count || 0})</div>
+          <small class="product-category">${escapeHtml(p.category_name || 'สินค้า')}</small>
+          <h2 class="product-title">${escapeHtml(p.name)}</h2>
+          <div class="rating-line">★ ${p.average_rating || '0.00'} · ${p.review_count || 0} รีวิว</div>
           <div class="mt-auto pt-3">
-            <select class="form-select form-select-sm mb-2" data-variant-select="${p.id}">
+            <select class="form-select variant-select mb-2" data-variant-select="${p.id}" aria-label="เลือกขนาด ${escapeHtml(p.name)}">
               ${(p.variants || []).map(v => `<option value="${v.id}" ${v.stock < 1 ? 'disabled' : ''}>
                 ${escapeHtml(v.name)} · ${money(v.price)}${v.stock < 1 ? ' (หมด)' : ''}
               </option>`).join('')}
             </select>
             <div class="d-flex align-items-center justify-content-between gap-2">
-              <strong class="text-primary">เริ่ม ${money(p.price)}</strong>
-              <button class="btn btn-primary btn-sm rounded-pill" data-add="${p.id}" ${(p.variants || []).every(v => v.stock < 1) ? 'disabled' : ''}>เพิ่ม</button>
+              <strong class="price-label">เริ่ม ${money(p.price)}</strong>
+              <button class="btn btn-primary add-product-btn" data-add="${p.id}" ${(p.variants || []).every(v => v.stock < 1) ? 'disabled' : ''} aria-label="เพิ่ม ${escapeHtml(p.name)} ลงตะกร้า">+</button>
             </div>
           </div>
         </div>

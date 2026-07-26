@@ -1,17 +1,57 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ชำระเงิน | FreshMart</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&display=swap" rel="stylesheet"><link href="css/style.css" rel="stylesheet"></head>
-<body><main class="container py-4" style="max-width:800px"><a href="cart.html">← กลับตะกร้า</a><h1 class="my-4">ยืนยันคำสั่งซื้อ</h1>
-<form class="card border-0 shadow-sm" data-checkout><div class="card-body p-4">
-<h2 class="h5">1. เลือกวิธีรับสินค้า</h2><div class="row g-2 mb-4">
-<div class="col-6"><input class="btn-check" type="radio" name="fulfillment_method" id="delivery" value="delivery" checked><label class="btn btn-outline-primary w-100 py-3" for="delivery">🛵 ร้านจัดส่ง</label></div>
-<div class="col-6"><input class="btn-check" type="radio" name="fulfillment_method" id="pickup" value="pickup"><label class="btn btn-outline-primary w-100 py-3" for="pickup">🏪 รับหน้าร้าน</label></div></div>
-<input type="hidden" name="recipient_phone">
-<div data-delivery-fields><h2 class="h5">2. ที่อยู่จัดส่ง</h2><textarea class="form-control mb-3" name="shipping_address" placeholder="บ้านเลขที่ หมู่บ้าน ตำบล อำเภอ และจุดสังเกต"></textarea></div>
-<div data-pickup-fields hidden><h2 class="h5">2. นัดรับสินค้า</h2><div class="alert alert-info">ชำระเงินเมื่อรับสินค้าที่หน้าร้าน บ้านลำพาย<br><a href="https://maps.google.com/maps?q=7.622478,99.999591" target="_blank">เปิด Google Maps</a></div><label class="form-label">วันและเวลาที่ต้องการรับ</label><input class="form-control mb-3" type="datetime-local" name="pickup_at"></div>
-<div data-payment-section><h2 class="h5">3. วิธีชำระเงิน</h2><select class="form-select mb-3" name="payment_method"><option value="bank_transfer">โอนบัญชีธนาคาร</option><option value="promptpay">PromptPay</option><option value="cash">เงินสดเมื่อรับสินค้า</option></select>
-<div class="payment-drawer mb-3" data-transfer-drawer><div><small data-bank-name></small><strong class="d-block fs-5" data-bank-account></strong><span data-bank-owner></span></div><button class="btn btn-light" type="button" data-copy data-copy-bank>คัดลอกเลขบัญชี</button></div>
-<div class="payment-drawer mb-3" data-promptpay-drawer hidden><div><small>PromptPay</small><strong class="d-block fs-5" data-promptpay></strong></div><button class="btn btn-light" type="button" data-copy data-copy-promptpay>คัดลอกหมายเลข</button></div>
-<div data-slip-row><label class="form-label">แนบสลิป</label><input class="form-control mb-4" type="file" name="slip" accept="image/jpeg,image/png,image/webp"></div></div>
-<input class="form-control mb-3" name="coupon_code" placeholder="รหัสคูปอง เช่น WELCOME10"><textarea class="form-control mb-4" name="customer_note" placeholder="หมายเหตุถึงร้าน (ถ้ามี)"></textarea>
-<div class="checkout-summary"><div><span>ราคาสินค้า</span><strong data-checkout-subtotal></strong></div><div><span>ค่าจัดส่ง</span><strong data-checkout-fee></strong></div><div class="total"><span>ยอดประมาณการ</span><strong data-cart-total></strong></div></div>
-<button class="btn btn-primary btn-lg w-100 mt-4" type="submit">ยืนยันคำสั่งซื้อ</button>
-</div></form></main><script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script type="module" src="js/checkout.js"></script></body></html>
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#087db3">
+  <title>ยืนยันคำสั่งซื้อ | FreshMart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="css/style.css" rel="stylesheet">
+</head>
+<body class="customer-app">
+  <header class="app-header"><div class="container app-header__inner">
+    <a class="brand" href="cart.html"><span class="brand__mark">FM</span><span class="brand__name">ยืนยันคำสั่งซื้อ<small class="brand__caption">ปลอดภัยด้วย Supabase</small></span></a>
+    <div class="profile-pill"><img data-line-picture alt=""><span data-line-name></span></div>
+  </div></header>
+  <main class="container py-4" style="max-width:800px">
+    <a class="back-link" href="cart.html">← กลับไปตรวจตะกร้า</a>
+    <div class="page-heading"><h1>จัดส่งแบบไหนดี?</h1><p>เลือกวิธีรับสินค้า แล้วตรวจข้อมูลก่อนยืนยัน</p></div>
+    <form class="fm-surface checkout-card" data-checkout>
+      <section class="checkout-step">
+        <h2 class="step-title"><span class="step-number">1</span>วิธีรับสินค้า</h2>
+        <div class="row g-2">
+          <div class="col-6"><input class="btn-check" type="radio" name="fulfillment_method" id="delivery" value="delivery" checked><label class="choice-card" for="delivery"><span><span class="choice-card__icon">🛵</span>ให้ร้านจัดส่ง</span></label></div>
+          <div class="col-6"><input class="btn-check" type="radio" name="fulfillment_method" id="pickup" value="pickup"><label class="choice-card" for="pickup"><span><span class="choice-card__icon">🏪</span>รับเองหน้าร้าน</span></label></div>
+        </div>
+      </section>
+      <input type="hidden" name="recipient_phone">
+      <section class="checkout-step" data-delivery-fields>
+        <h2 class="step-title"><span class="step-number">2</span>ที่อยู่จัดส่ง</h2>
+        <label class="form-label" for="shipping-address">บ้านเลขที่และจุดสังเกต</label>
+        <textarea class="form-control" id="shipping-address" name="shipping_address" placeholder="บ้านเลขที่ หมู่บ้าน ตำบล อำเภอ และจุดสังเกต"></textarea>
+      </section>
+      <section class="checkout-step" data-pickup-fields hidden>
+        <h2 class="step-title"><span class="step-number">2</span>นัดรับที่ร้าน</h2>
+        <div class="store-note mb-3">🏪 <strong>ร้านชำเจ๊ดี บ้านลำพาย</strong><br><small>เปิด 06:00–18:09 · ชำระเมื่อรับสินค้า</small><br><a href="https://maps.google.com/maps?q=7.622478,99.999591" target="_blank" rel="noopener">เปิดเส้นทาง Google Maps ↗</a></div>
+        <label class="form-label" for="pickup-at">วันและเวลาที่ต้องการรับ</label><input class="form-control" id="pickup-at" type="datetime-local" name="pickup_at">
+      </section>
+      <section class="checkout-step" data-payment-section>
+        <h2 class="step-title"><span class="step-number">3</span>วิธีชำระเงิน</h2>
+        <select class="form-select mb-3" name="payment_method"><option value="bank_transfer">โอนบัญชีธนาคาร</option><option value="promptpay">PromptPay</option><option value="cash">เงินสดเมื่อได้รับสินค้า</option></select>
+        <div class="payment-drawer mb-3" data-transfer-drawer><div><small class="text-secondary" data-bank-name></small><strong class="d-block fs-5" data-bank-account></strong><span data-bank-owner></span></div><button class="btn btn-light" type="button" data-copy data-copy-bank>คัดลอก</button></div>
+        <div class="payment-drawer mb-3" data-promptpay-drawer hidden><div><small class="text-secondary">PromptPay</small><strong class="d-block fs-5" data-promptpay></strong></div><button class="btn btn-light" type="button" data-copy data-copy-promptpay>คัดลอก</button></div>
+        <div data-slip-row><label class="form-label" for="slip">แนบสลิปการโอน</label><input class="form-control" id="slip" type="file" name="slip" accept="image/jpeg,image/png,image/webp"><div class="form-text">รองรับ JPG, PNG และ WebP</div></div>
+      </section>
+      <section class="checkout-step">
+        <h2 class="step-title"><span class="step-number">4</span>รายละเอียดเพิ่มเติม</h2>
+        <input class="form-control mb-3" name="coupon_code" placeholder="รหัสคูปอง (ถ้ามี)">
+        <textarea class="form-control" name="customer_note" placeholder="ข้อความถึงร้าน เช่น ฝากไว้กับบ้านข้าง ๆ"></textarea>
+      </section>
+      <section class="pt-4">
+        <div class="checkout-summary"><div><span>ราคาสินค้า</span><strong data-checkout-subtotal></strong></div><div><span>ค่าจัดส่ง</span><strong data-checkout-fee></strong></div><div class="total"><span>ยอดชำระ</span><strong data-cart-total></strong></div></div>
+        <button class="btn btn-primary btn-lg w-100 mt-3" type="submit">ยืนยันคำสั่งซื้ออย่างปลอดภัย</button>
+        <p class="text-center text-secondary small mt-3 mb-0">ราคากับสต็อกจะถูกตรวจอีกครั้งในฐานข้อมูล</p>
+      </section>
+    </form>
+  </main>
+  <nav class="bottom-nav" aria-label="เมนูหลัก"><a class="bottom-nav__item" href="index.html"><span class="bottom-nav__icon">⌂</span><span>หน้าร้าน</span></a><a class="bottom-nav__item" href="orders.html"><span class="bottom-nav__icon">▤</span><span>คำสั่งซื้อ</span></a><a class="bottom-nav__item is-active" href="cart.html"><span class="bottom-nav__icon">🛒</span><span>ตะกร้า</span><span class="cart-badge" data-cart-count>0</span></a></nav>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script type="module" src="js/checkout.js"></script>
+</body>
+</html>

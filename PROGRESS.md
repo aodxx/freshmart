@@ -52,6 +52,7 @@
 |---|---:|---|---|
 | GitHub Pages | 🧪 | Repository เป็น Public และ deploy จาก `main` | ทดสอบหน้า Production หลังทุก Merge |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
+| FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
 | โปรไฟล์ LINE | 🧪 | ดึงชื่อและรูปโปรไฟล์ พร้อมบันทึกประวัติลูกค้า | เบอร์โทรไม่สามารถดึงจาก LIFF Profile โดยตรง ต้องให้ลูกค้ากรอก/ยืนยัน |
 | Supabase Auth | ✅ | ใช้ Email/Password สำหรับผู้ดูแลระบบ | เปิด Leaked Password Protection เมื่อแผน/การตั้งค่ารองรับ |
@@ -181,6 +182,21 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 27 กรกฎาคม 2026 — FreshMart UI Design System
+
+- สร้าง Brand Tokens สำหรับสี ตัวอักษร รูปทรง เงา และ Motion
+- เปลี่ยนฟอนต์หลักเป็น IBM Plex Sans Thai และ Manrope สำหรับ Display
+- ลดบทบาท Bootstrap เหลือ Grid, Modal และ Utility Classes
+- เพิ่ม App Header, Profile Pill และ Bottom Navigation สำหรับ LINE LIFF
+- ออกแบบ Hero, Search Dock, Product Tile และ Variant Selector ใหม่
+- ปรับตะกร้าเป็น Mobile Cart พร้อม Sticky Checkout Action
+- ปรับ Checkout เป็น Step Form, Choice Card และ Payment Drawer
+- ปรับ Order History เป็น Order Card พร้อม Status Pill
+- ปรับ Login/Register ให้เป็นหน้าเฉพาะผู้ดูแลร้าน
+- ปรับ Admin Navigation, Toolbar, Tables, Product Cards และ Modal
+- รองรับ Mobile-first, Safe-area และ Reduced Motion
+- คง Supabase, LIFF และ Business Logic เดิมไว้
 
 ### 27 กรกฎาคม 2026 — Supabase Free Plan Health Check
 
