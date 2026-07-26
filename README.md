@@ -3,7 +3,7 @@
 เว็บร้านค้าแบบ Static Site ใช้ Supabase เป็นฐานข้อมูล, Authentication, Storage, Realtime และ Edge Functions
 ลิงก์ใช้งาน:
 
-        .[https://aodxx.github.io/freshmart/]
+.[https://aodxx.github.io/freshmart/]
 หน้าร้าน FreshMart.[https://aodxx.github.io/freshmart/admin/products.html]
 หน้าจัดการสินค้า
 
