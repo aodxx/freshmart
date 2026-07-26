@@ -57,7 +57,7 @@ insert into public.store_settings (
   1, 'ร้านชำเจ๊ดี', 'freshMart', 'บ้านลำพาย',
   'https://maps.google.com/maps?q=7.622478,99.999591',
   '06:00', '18:09', 100, 500, 'ธนาคารกสิกรไทย', '0751675011',
-  'อ๊อด เกตุแก้ว', '0805360748', '2010025658-kBKgsnz', '2010025658'
+  'อ๊อด เกตุแก้ว', '0805360748', '2010025658-kBKgsnzH', '2010025658'
 )
 on conflict (id) do update set
   store_name = excluded.store_name,
