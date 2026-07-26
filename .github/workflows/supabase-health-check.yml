@@ -1,0 +1,77 @@
+name: Supabase Health Check
+
+on:
+  schedule:
+    # 08:17 Asia/Bangkok every second day (GitHub cron uses UTC).
+    # Avoid the start of the hour because scheduled Actions may be delayed then.
+    - cron: "17 1 */2 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-health-check
+  cancel-in-progress: false
+
+jobs:
+  database-health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Read public Supabase configuration
+        id: config
+        shell: bash
+        run: |
+          supabase_url="$(sed -n "s/.*SUPABASE_URL: '\([^']*\)'.*/\1/p" js/config.js)"
+          publishable_key="$(sed -n "s/.*SUPABASE_PUBLISHABLE_KEY: '\([^']*\)'.*/\1/p" js/config.js)"
+
+          if [[ -z "$supabase_url" || -z "$publishable_key" ]]; then
+            echo "::error::Could not read Supabase public configuration from js/config.js"
+            exit 1
+          fi
+
+          echo "supabase_url=$supabase_url" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$publishable_key"
+          echo "publishable_key=$publishable_key" >> "$GITHUB_OUTPUT"
+
+      - name: Query FreshMart database
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ steps.config.outputs.supabase_url }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ steps.config.outputs.publishable_key }}
+        run: |
+          response_file="$(mktemp)"
+          http_status="$(
+            curl \
+              --silent \
+              --show-error \
+              --retry 3 \
+              --retry-all-errors \
+              --connect-timeout 10 \
+              --max-time 20 \
+              --output "$response_file" \
+              --write-out "%{http_code}" \
+              "${SUPABASE_URL}/rest/v1/store_settings?select=id&limit=1" \
+              -H "apikey: ${SUPABASE_PUBLISHABLE_KEY}" \
+              -H "Authorization: Bearer ${SUPABASE_PUBLISHABLE_KEY}" \
+              -H "Accept: application/json"
+          )"
+
+          if [[ "$http_status" != "200" ]]; then
+            echo "::error::Supabase health check failed with HTTP $http_status"
+            sed -n '1,20p' "$response_file"
+            exit 1
+          fi
+
+          if ! grep -q '"id"' "$response_file"; then
+            echo "::error::Supabase responded but store_settings did not return the expected row"
+            sed -n '1,20p' "$response_file"
+            exit 1
+          fi
+
+          echo "FreshMart Supabase database is healthy (HTTP $http_status)."
