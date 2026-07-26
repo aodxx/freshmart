@@ -1,1 +1,25 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>คำสั่งซื้อ | FreshMart</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="css/style.css" rel="stylesheet"></head><body><main class="container py-4" style="max-width:850px"><a href="index.html">← หน้าร้าน</a><h1 class="my-4">คำสั่งซื้อของฉัน</h1><div data-orders><div class="text-center py-5"><div class="spinner-border text-primary"></div></div></div></main><script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script type="module" src="js/orders.js"></script></body></html>
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#087db3">
+  <title>คำสั่งซื้อ | FreshMart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="css/style.css" rel="stylesheet">
+</head>
+<body class="customer-app">
+  <header class="app-header"><div class="container app-header__inner">
+    <a class="brand" href="index.html"><span class="brand__mark">FM</span><span class="brand__name">คำสั่งซื้อ<small class="brand__caption">ติดตามสถานะ</small></span></a>
+    <div class="profile-pill"><img data-line-picture alt=""><span data-line-name></span></div>
+  </div></header>
+  <main class="container py-4" style="max-width:800px">
+    <a class="back-link" href="index.html">← กลับหน้าร้าน</a>
+    <div class="page-heading"><h1>คำสั่งซื้อของฉัน</h1><p>ดูสถานะและรายละเอียดรายการย้อนหลัง</p></div>
+    <div data-orders><div class="text-center py-5"><div class="spinner-border"></div><p class="text-secondary mt-2">กำลังค้นหาออเดอร์...</p></div></div>
+  </main>
+  <nav class="bottom-nav" aria-label="เมนูหลัก">
+    <a class="bottom-nav__item" href="index.html"><span class="bottom-nav__icon">⌂</span><span>หน้าร้าน</span></a>
+    <a class="bottom-nav__item is-active" href="orders.html"><span class="bottom-nav__icon">▤</span><span>คำสั่งซื้อ</span></a>
+    <a class="bottom-nav__item" href="cart.html"><span class="bottom-nav__icon">🛒</span><span>ตะกร้า</span><span class="cart-badge" data-cart-count>0</span></a>
+  </nav>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script type="module" src="js/orders.js"></script>
+</body>
+</html>
