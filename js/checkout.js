@@ -45,7 +45,7 @@ form?.addEventListener('submit', async event => {
     }
     const result = await liffApi('place_order', {
       order: {
-        items: getCart().map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+        items: getCart().map(i => ({ variant_id: i.variant_id, quantity: i.quantity })),
         fulfillment_method: fulfillment,
         payment_method: payment,
         recipient_name: liffState.customer.display_name,
