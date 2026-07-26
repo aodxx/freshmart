@@ -1,6 +1,6 @@
 import { supabase, toast } from './supabaseClient.js';
 
-const KEY = 'freshmart-cart-v1';
+const KEY = 'freshmart-cart-v2';
 export const getCart = () => JSON.parse(localStorage.getItem(KEY) || '[]');
 const saveLocal = cart => {
   localStorage.setItem(KEY, JSON.stringify(cart));
@@ -10,18 +10,27 @@ const saveLocal = cart => {
   window.dispatchEvent(new CustomEvent('freshmart:cart', { detail: cart }));
 };
 
-export const addToCart = product => {
+export const addToCart = (product, variant) => {
+  if (!variant || variant.stock < 1) return toast('warning', 'สินค้าขนาดนี้หมดชั่วคราว');
   const cart = getCart();
-  const current = cart.find(item => item.product_id === product.id);
-  if (current) current.quantity = Math.min(current.quantity + 1, product.stock);
-  else cart.push({ product_id: product.id, name: product.name, price: Number(product.price), quantity: 1, stock: product.stock });
+  const current = cart.find(item => item.variant_id === variant.id);
+  if (current) current.quantity = Math.min(current.quantity + 1, variant.stock);
+  else cart.push({
+    product_id: product.id,
+    variant_id: variant.id,
+    name: product.name,
+    variant_name: variant.name,
+    price: Number(variant.price),
+    quantity: 1,
+    stock: variant.stock
+  });
   saveLocal(cart);
   syncCart().catch(console.error);
   toast('success', 'เพิ่มลงตะกร้าแล้ว');
 };
 
-export const updateQuantity = (productId, quantity) => {
-  const cart = getCart().map(item => item.product_id === productId
+export const updateQuantity = (variantId, quantity) => {
+  const cart = getCart().map(item => item.variant_id === variantId
     ? { ...item, quantity: Math.max(0, Math.min(Number(quantity), item.stock)) } : item)
     .filter(item => item.quantity > 0);
   saveLocal(cart);
@@ -39,7 +48,7 @@ export async function syncCart() {
   await supabase.from('cart_items').delete().eq('cart_id', cart.id);
   if (local.length) {
     await supabase.from('cart_items').insert(local.map(i => ({
-      cart_id: cart.id, product_id: i.product_id, quantity: i.quantity
+      cart_id: cart.id, product_id: i.product_id, variant_id: i.variant_id, quantity: i.quantity
     })));
   }
 }

@@ -1,1 +1,133 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>สินค้า | FreshMart Admin</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="../css/style.css" rel="stylesheet"></head><body><main class="container py-5"><a href="index.html">← Admin</a><h1 class="mt-4">จัดการสินค้า</h1><p class="alert alert-info">Foundation Release เตรียมสิทธิ์ฐานข้อมูลสำหรับเพิ่ม แก้ไข และลบสินค้าแล้ว ฟอร์มจัดการสินค้าเต็มรูปแบบจะอยู่ในรุ่นถัดไป</p></main></body></html>
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>จัดการสินค้า | FreshMart Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/style.css" rel="stylesheet">
+</head>
+<body>
+  <main class="container py-4 py-lg-5">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+      <div>
+        <a href="index.html" class="text-decoration-none">← Dashboard</a>
+        <h1 class="h2 mt-2 mb-1">จัดการสินค้า</h1>
+        <p class="text-secondary mb-0">สินค้า 1 รายการเพิ่มขนาดและราคาได้หลายแบบ</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" data-add-category>+ หมวดหมู่</button>
+        <button class="btn btn-primary" data-new-product>+ เพิ่มสินค้า</button>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-8"><input class="form-control" data-admin-search placeholder="ค้นหาชื่อสินค้า..."></div>
+          <div class="col-md-4">
+            <select class="form-select" data-status-filter>
+              <option value="">ทั้งหมด</option>
+              <option value="active">กำลังขาย</option>
+              <option value="inactive">ปิดขาย</option>
+              <option value="low">ใกล้หมด</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-products-list>
+      <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+    </div>
+  </main>
+
+  <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content border-0">
+        <form data-product-form>
+          <div class="modal-header">
+            <h2 class="modal-title h5" data-form-title>เพิ่มสินค้า</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="id">
+            <input type="hidden" name="current_image_path">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">หมวดหมู่</label>
+                <select class="form-select" name="category_id" required></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">สถานะ</label>
+                <select class="form-select" name="is_active">
+                  <option value="true">กำลังขาย</option>
+                  <option value="false">ปิดขายชั่วคราว</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label">ชื่อสินค้า</label>
+                <input class="form-control" name="name" maxlength="150" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label">รายละเอียด</label>
+                <textarea class="form-control" name="description" rows="2" maxlength="1000"></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label">รูปสินค้า</label>
+                <input class="form-control" name="image" type="file" accept="image/jpeg,image/png,image/webp">
+                <div class="form-text">ระบบจะย่อเป็น WebP ไม่เกิน 1,000×1,000 พิกเซลก่อนอัปโหลด</div>
+                <img data-image-preview class="mt-2 rounded border d-none" width="120" height="120" style="object-fit:cover" alt="ตัวอย่างรูป">
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between mt-4 mb-2">
+              <div>
+                <h3 class="h6 mb-0">ขนาดและราคา</h3>
+                <small class="text-secondary">อย่างน้อย 1 แถว</small>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary" data-add-variant>+ เพิ่มขนาด</button>
+            </div>
+            <div data-variant-rows></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary">บันทึกสินค้า</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <template id="variantRowTemplate">
+    <div class="variant-row border rounded-3 p-3 mb-2">
+      <input type="hidden" data-field="id">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small">ชื่อขนาด</label>
+          <input class="form-control" data-field="variant_name" placeholder="เช่น 325ml" maxlength="80" required>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small">ราคา</label>
+          <input class="form-control" data-field="price" type="number" min="0" step="0.01" required>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small">สต็อก</label>
+          <input class="form-control" data-field="stock_qty" type="number" min="0" step="1" required>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small">เตือนเมื่อเหลือ</label>
+          <input class="form-control" data-field="low_stock_threshold" type="number" min="0" step="1" value="5" required>
+        </div>
+        <div class="col-6 col-md-2">
+          <button type="button" class="btn btn-outline-danger w-100" data-remove-variant>ลบแถว</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="module" src="../js/admin-products.js"></script>
+</body>
+</html>

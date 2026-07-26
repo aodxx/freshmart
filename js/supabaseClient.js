@@ -13,6 +13,16 @@ export const toast = (icon, title) => Swal.fire({
   icon, title, toast: true, position: 'top-end', showConfirmButton: false, timer: 2200
 });
 
+export const productImageUrl = path => {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  return supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+};
+
+export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+}[char]));
+
 export const appUrl = path => new URL(`${CONFIG.APP_BASE_PATH}${String(path).replace(/^\/+/, '')}`, location.origin).href;
 
 export const requireUser = async () => {
