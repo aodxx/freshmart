@@ -11,6 +11,7 @@ test('accepts valid GTIN lengths and check digits', () => {
   assert.equal(hasValidGtinCheckDigit('96385074'), true);
   assert.equal(hasValidGtinCheckDigit('036000291452'), true);
   assert.equal(hasValidGtinCheckDigit('8851234567898'), true);
+  assert.equal(hasValidGtinCheckDigit('8850999009674'), true);
   assert.equal(hasValidGtinCheckDigit('10012345000017'), true);
 });
 
