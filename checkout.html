@@ -24,8 +24,29 @@
       <input type="hidden" name="recipient_phone">
       <section class="checkout-step" data-delivery-fields>
         <h2 class="step-title"><span class="step-number">2</span>ที่อยู่จัดส่ง</h2>
+        <div class="mb-3" data-address-picker hidden>
+          <label class="form-label" for="delivery-address-choice">เลือกที่อยู่สำหรับออเดอร์นี้</label>
+          <select class="form-select" id="delivery-address-choice" name="delivery_address_choice"></select>
+        </div>
         <label class="form-label" for="shipping-address">บ้านเลขที่และจุดสังเกต</label>
         <textarea class="form-control" id="shipping-address" name="shipping_address" placeholder="บ้านเลขที่ หมู่บ้าน ตำบล อำเภอ และจุดสังเกต"></textarea>
+        <div class="delivery-location-box mt-3">
+          <div>
+            <strong>พิกัดสำหรับร้านนำทาง</strong>
+            <span data-gps-status>ยังไม่ได้ระบุตำแหน่ง GPS</span>
+          </div>
+          <div class="delivery-location-actions">
+            <button class="btn btn-outline-primary btn-sm" type="button" data-use-gps>⌖ ใช้ GPS ปัจจุบัน</button>
+            <a class="btn btn-light btn-sm" data-gps-map href="#" target="_blank" rel="noopener" hidden>ดูแผนที่ ↗</a>
+          </div>
+        </div>
+        <div class="address-save-options mt-3" data-save-address-row>
+          <div class="form-check">
+            <input class="form-check-input" id="save-address" type="checkbox" name="save_address" checked>
+            <label class="form-check-label" for="save-address">บันทึกที่อยู่นี้ไว้ใช้ครั้งถัดไป</label>
+          </div>
+          <input class="form-control form-control-sm" name="address_label" maxlength="40" value="บ้าน" aria-label="ชื่อเรียกที่อยู่" placeholder="ชื่อเรียก เช่น บ้าน หรือ ที่ทำงาน">
+        </div>
       </section>
       <section class="checkout-step" data-pickup-fields hidden>
         <h2 class="step-title"><span class="step-number">2</span>นัดรับที่ร้าน</h2>
