@@ -4,7 +4,35 @@
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
 > อัปเดตล่าสุด: 30 กรกฎาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — โครงสร้างหลักและระบบสั่งซื้อพร้อมทดสอบจริง**
+> สถานะภาพรวม: **กำลังพัฒนา — โค้ด Frontend หลักอยู่ใน `main`, Backend อยู่บน Production และพร้อมเริ่มทดสอบ End-to-End จริง**
+> จุดอ้างอิง GitHub: `main@85912fe5ae0127088e1ef97b4431f0e212deddd4`
+
+---
+
+## 0. จุดเริ่มงานครั้งถัดไป
+
+อ่านส่วนนี้ก่อนเพื่อเริ่มพัฒนาต่อโดยไม่ต้องไล่เดาสถานะจากหลายระบบ
+
+| จุดตรวจ | สถานะที่ยืนยันแล้ว |
+|---|---|
+| GitHub `main` | Merge commit ล่าสุด `85912fe5ae0127088e1ef97b4431f0e212deddd4` จาก PR #6 |
+| Pull Request ฟีเจอร์เปิดค้าง | ไม่มี ณ เวลาตรวจ (ไม่รวม PR สำหรับอัปเดตเอกสารนี้) |
+| GitHub Pages | โค้ดจาก PR #3–#6 อยู่ใน `main` แล้ว |
+| Supabase Backend | Migration และ Edge Function สำหรับ Barcode, GPS และบัญชีค้างชำระถูก Deploy ตามประวัติงาน; ตรวจ Dashboard ซ้ำก่อนเปลี่ยน Backend |
+| Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
+| Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
+| งานแรกที่ควรทำ | ทดสอบเส้นทางสั่งซื้อจริงบน LINE LIFF ตั้งแต่เลือกสินค้า → Checkout → GPS/ชำระเงิน → Admin → ประวัติลูกค้า |
+
+### ข้อกำหนดที่ห้ามเปลี่ยนโดยไม่ทบทวน PRD
+
+- ลูกค้าเข้าใช้งานผ่าน LINE LIFF เท่านั้น; Admin ใช้ Supabase Auth แบบ Email/Password
+- สินค้าใช้โครงสร้าง Categories → Products → Product Variants และตะกร้าอ้างอิง `variant_id`
+- เมื่อรับเองหน้าร้าน ให้ซ่อนตัวเลือกชำระเงินและใช้ `pay_at_store`
+- เมื่อจัดส่ง ให้เลือกเงินสด โอนธนาคาร หรือ PromptPay ได้
+- LIFF Profile ไม่ให้เบอร์โทรอัตโนมัติ ลูกค้าต้องกรอกหรือยืนยันเอง
+- ระบบไม่สร้างหนี้จากสถานะชำระเงินโดยอัตโนมัติ; Admin ต้องบันทึกบัญชีค้างชำระอย่างชัดเจน
+- ออเดอร์ต้องเก็บ Snapshot ที่อยู่และ GPS เพื่อไม่ให้ประวัติเดิมเปลี่ยนตามการแก้ที่อยู่ภายหลัง
+- ห้ามใส่ Supabase `service_role`, LINE Channel Secret หรือ Access Token ลง Frontend และ Repository
 
 ---
 
@@ -50,7 +78,7 @@
 
 | โมดูล | สถานะ | รายละเอียดล่าสุด | งานที่ยังเหลือ |
 |---|---:|---|---|
-| GitHub Pages | 🧪 | Repository เป็น Public และ deploy จาก `main` | ทดสอบหน้า Production หลังทุก Merge |
+| GitHub Pages | 🧪 | Repository เป็น Public; PR #3–#6 Merge เข้า `main` แล้ว | ทำ Production smoke test หลังการ Merge เอกสารรอบนี้ |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
@@ -60,9 +88,9 @@
 | หมวดหมู่สินค้า | 🧪 | เพิ่มหมวดหมู่จากหน้า Admin ได้ ไม่ผูกหมวดไว้ในโค้ด | เพิ่มแก้ไข/เรียงลำดับ/ปิดหมวดหมู่ |
 | สินค้า | 🧪 | เพิ่ม แก้ไข และปิดขายชั่วคราวได้ | ทดสอบฟอร์มกับข้อมูลจริงจำนวนมาก |
 | Product Variants | 🧪 | สินค้า 1 รายการมีหลายขนาด ราคา สต็อก และบาร์โค้ดได้ | เพิ่ม UI จัดการ SKU หากต้องการ |
-| Barcode Scanner | 🧪 | Backend deploy แล้ว; Admin สแกน EAN/UPC/GTIN ด้วยกล้องหรือกรอกเอง ตรวจ check digit และป้องกันบาร์โค้ดซ้ำ | Merge PR และทดสอบกล้อง Android/iOS จริง |
-| Open Product Dataset | 🧪 | ตารางและ Edge Function deploy แล้ว; ค้น local-first, fallback ไป Open Food Facts และนำเข้า CSV/TSV แบบ batch | Merge PR แล้วทดสอบ Dataset ภาษาไทยขนาดเล็ก |
-| รูปสินค้า | 🧪 | Bucket `product-images` แบบ Public; บีบอัด WebP ก่อนอัปโหลด | ทดสอบกล้องมือถือหลายรุ่นและรูปแนวตั้ง/แนวนอน |
+| Barcode Scanner | 🧪 | อยู่ใน `main` แล้ว; สแกน/กรอก EAN, UPC, GTIN, ตรวจ check digit, ป้องกันรหัสซ้ำ และเปิดฟอร์มกรอกเองเมื่อค้นไม่พบ | ทดสอบสิทธิ์กล้อง Android/iOS จริง |
+| Open Product Dataset | 🧪 | อยู่ใน `main`; ค้น local-first แล้ว fallback ไป Open Food Facts; Edge Function ถูก Deploy แล้ว | ทดสอบนำเข้า Dataset ภาษาไทยแบบ CSV/TSV ขนาดเล็ก |
+| รูปสินค้า | 🧪 | Bucket `product-images` แบบ Public; บีบอัด WebP; PR #5 แก้กรอบ 4:3 และใช้ `object-fit: contain` แล้ว | ทดสอบรูปจริงแนวตั้ง/แนวนอนบนมือถือหลายรุ่น |
 | สต็อก | 🧪 | ตัดสต็อกระดับ Variant และมี Low-stock threshold | เพิ่มหน้ารายงาน Stock Movements และรับสินค้าเข้า |
 | ประวัติราคา | ✅ | บันทึกราคาเก่า ราคาใหม่ ผู้แก้ และเวลา | เพิ่มหน้าดูประวัติใน Admin |
 | รายการสินค้า | 🧪 | ค้นหา กรองหมวด และเลือกขนาดก่อนใส่ตะกร้า | เพิ่ม Product Detail เต็มรูปแบบ |
@@ -77,7 +105,7 @@
 | ประวัติคำสั่งซื้อ | 🧪 | ลูกค้าดูออเดอร์ ยอดค้างชำระ ยอดคงเหลือ และประวัติรับชำระของตนผ่าน LIFF API | ทดสอบกับรายการค้างชำระจริง |
 | Admin Orders | 🚧 | มีหน้าแสดงและเปลี่ยนสถานะคำสั่งซื้อ | ทดสอบยืนยัน/ปฏิเสธสลิปและ Tracking |
 | Dashboard | 🚧 | มีหน้า Admin พื้นฐาน | เพิ่มยอดขายรายวัน/เดือน/ปีและสินค้าขายดี |
-| สมาชิก/ลูกค้า | 🧪 | Customer Center แสดงประวัติซื้อ ที่อยู่ พิกัดนำทาง และบัญชีค้างชำระ พร้อมบันทึกรับชำระบางส่วน | Merge หน้าเว็บและทดสอบบนมือถือจริง |
+| สมาชิก/ลูกค้า | 🧪 | PR #6 อยู่ใน `main`; Customer Center แสดงประวัติซื้อ ที่อยู่ GPS ปุ่มนำทาง บัญชีค้างชำระ และรับชำระบางส่วน | ทดสอบข้อมูลจริงบนมือถือและสร้างหนี้ทดสอบที่ควบคุมได้ 1 รายการ |
 | คูปอง | 🚧 | ฐานข้อมูลและ validation ฝั่ง DB พร้อม; มี `WELCOME10` | เพิ่มหน้า Admin จัดการคูปอง |
 | รีวิว | 🚧 | ตารางและ RLS พร้อม ตรวจสิทธิ์จากออเดอร์ที่เสร็จแล้ว | สร้าง UI รีวิวและค่าเฉลี่ยดาว |
 | LINE แจ้งเตือน Admin | 🧪 | Edge Function รองรับส่งส่วนตัวและกลุ่มผ่าน Messaging API | ทดสอบ Token/User ID/Group ID จริงทุกปลายทาง |
@@ -190,6 +218,15 @@ erDiagram
 
 ## 6. ประวัติการเปลี่ยนแปลง
 
+### 30 กรกฎาคม 2026 — Production Checkpoint หลัง Merge PR #3–#6
+
+- PR #3: Barcode Scanner และ Open Product Catalog เข้า `main`
+- PR #4: แก้ fallback เมื่อบาร์โค้ดไม่พบ และแก้ Modal เพิ่มสินค้าบนมือถือให้เลื่อนได้
+- PR #5: แก้สัดส่วนภาพสินค้าให้เห็นเต็มชิ้น; Merge commit `7f4171e5cb7fee805940d568596c37c8bb2ed274`
+- PR #6: เพิ่ม Customer Center, GPS และบัญชีค้างชำระ; Merge commit `85912fe5ae0127088e1ef97b4431f0e212deddd4`
+- ตรวจ GitHub แล้วไม่มี Pull Request ฟีเจอร์เปิดค้างก่อนสร้าง PR สำหรับเอกสารฉบับนี้
+- Backend สำหรับ Barcode, GPS และบัญชีค้างชำระถูก Deploy แล้วตามงานใน PR ที่เกี่ยวข้อง; ต้องตรวจ Dashboard ซ้ำก่อนพัฒนารอบใหม่
+
 ### 30 กรกฎาคม 2026 — Customer GPS & Outstanding Balance
 
 - เพิ่มการเลือกที่อยู่ที่บันทึก ที่อยู่จากคำสั่งซื้อล่าสุด หรือกรอกที่อยู่ใหม่
@@ -282,6 +319,10 @@ erDiagram
 
 | วันที่ | ปัญหา | สาเหตุ | สถานะ/วิธีแก้ |
 |---|---|---|---|
+| 30 ก.ค. 2026 | สินค้าบางบาร์โค้ดค้นไม่พบแล้วไม่เปิดฟอร์มกรอกเอง | Backend ส่งข้อผิดพลาดจาก Open Food Facts กลับตรง ๆ | ✅ PR #4 เปลี่ยนเป็นสถานะ “ไม่พบ” และเติมบาร์โค้ดลงฟอร์ม |
+| 30 ก.ค. 2026 | Modal เพิ่มสินค้าบนมือถือเลื่อนไม่ได้ ทำให้ปุ่มบันทึกหาย | โครงสร้าง `form` ขวางกลไก `modal-dialog-scrollable` | ✅ PR #4 ปรับ `form` ให้เป็น `modal-content` |
+| 30 ก.ค. 2026 | ภาพสินค้าถูกตัด เห็นเพียงครึ่งบน | ใช้ `object-fit: cover` ในกรอบความสูงตายตัว | ✅ PR #5 ใช้กรอบ 4:3 และ `object-fit: contain` |
+| 30 ก.ค. 2026 | หน้า “รายชื่อลูกค้า” แสดงว่ากำลังพัฒนาแม้มีข้อมูลในฐาน | หน้าเดิมยังไม่เชื่อม `customers` และ `orders` | ✅ PR #6 เพิ่ม Customer Center เชื่อมข้อมูลจริง |
 | 27 ก.ค. 2026 | `Invalid LIFF` เมื่อเปิดตะกร้า | LIFF ID ที่ตั้งค่าไม่ครบ | ✅ แก้ให้ตรงกับค่าใน LINE Developers |
 | 26–27 ก.ค. 2026 | `There isn't a GitHub Pages site here` | Pages ยังไม่พร้อมหรือ URL/Deployment ยังไม่อัปเดต | 🧪 เปิด Pages แล้ว ต้องตรวจหลัง Merge |
 | 27 ก.ค. 2026 | ตะกร้าเก่าไม่รองรับ Variant | Local Cart รุ่นแรกเก็บเฉพาะ `product_id` | ✅ เปลี่ยน Storage Key เป็น `freshmart-cart-v2`; ลูกค้าต้องเพิ่มสินค้าใหม่ |
@@ -322,6 +363,11 @@ Commit หรือ PR ที่แก้:
 - [ ] ตรวจว่าสต็อกลดเฉพาะ Variant ที่ซื้อ
 - [ ] ตรวจ LINE แจ้งเตือนส่วนตัวและกลุ่ม
 - [ ] ตรวจประวัติออเดอร์ของลูกค้า
+- [ ] อนุญาต GPS บน LINE และตรวจว่า Admin กดนำทางไปตำแหน่งเดียวกับออเดอร์
+- [ ] ทดสอบใช้ที่อยู่ที่บันทึก / ที่อยู่จากออเดอร์ล่าสุด / ที่อยู่ใหม่ อย่างละ 1 ครั้ง
+- [ ] ให้ Admin สร้างยอดค้างชำระที่ควบคุมได้ 1 รายการ
+- [ ] รับชำระบางส่วนและตรวจยอดคงเหลือทั้งฝั่ง Admin และลูกค้า
+- [ ] ปิดยอดที่เหลือและตรวจสถานะเปลี่ยนเป็น `paid`
 
 ### Priority 2 — ทำ Admin Orders ให้สมบูรณ์
 
@@ -348,12 +394,39 @@ Commit หรือ PR ที่แก้:
 - [ ] Admin Coupons
 - [ ] QR PromptPay ตามยอด
 - [ ] Realtime Order Status
-- [ ] จัดการที่อยู่ลูกค้า
-- [ ] รายชื่อลูกค้าและประวัติการซื้อ
+- [ ] UI ให้ลูกค้าแก้ไข/ลบ/ตั้งที่อยู่เริ่มต้น
+- [ ] หมายเหตุและป้ายกำกับลูกค้า เช่น ลูกค้าประจำ, VIP, ร้านอาหาร
+- [ ] วิเคราะห์สินค้าที่ลูกค้าซื้อบ่อยและวันที่เหมาะสำหรับเสนอขายซ้ำ
+- [ ] ระบบคะแนนสะสมหรือส่วนลดเฉพาะลูกค้า
 
 ---
 
 ## 9. วิธีเริ่มงานต่อในครั้งถัดไป
+
+### แผนที่ไฟล์สำคัญ
+
+| งาน | ไฟล์หลัก |
+|---|---|
+| หน้าร้าน/รายการสินค้า | `index.html`, `js/products.js`, `css/style.css` |
+| ตะกร้า | `cart.html`, `js/cart.js`, `js/cart-page.js` |
+| Checkout และ GPS | `checkout.html`, `js/checkout.js` |
+| ประวัติออเดอร์ลูกค้า/ยอดค้าง | `orders.html`, `js/orders.js` |
+| Admin สินค้า/บาร์โค้ด | `admin/products.html`, `js/admin-products.js`, `js/barcode.js` |
+| Admin ลูกค้า | `admin/members.html`, `js/admin-members.js`, `css/admin-members.css` |
+| Admin ออเดอร์ | `admin/orders.html`, `js/admin-orders.js` |
+| LIFF Backend | `supabase/functions/liff-api/index.ts` |
+| Barcode/Open Food Facts Backend | `supabase/functions/product-catalog/index.ts` |
+| LINE แจ้งเตือน | `supabase/functions/line-notify/index.ts` |
+| Schema และ RLS | `supabase/migrations/` |
+| การตั้งค่า Frontend | `js/config.js`, `js/supabaseClient.js`, `js/liffClient.js` |
+| Barcode tests | `tests/barcode.test.mjs` |
+
+### หลักการ Deploy
+
+- Merge เข้า `main` ทำให้ GitHub Pages อัปเดตเฉพาะไฟล์ Frontend
+- Supabase Migration และ Edge Function ต้อง Deploy ไป Production แยกต่างหาก แล้วตรวจว่าตรงกับไฟล์ใน Repository
+- หลัง Deploy Backend ให้บันทึกชื่อ Migration และเวอร์ชัน Edge Function ในเอกสารนี้
+- ก่อนเริ่ม Branch ใหม่ ให้ตรวจว่าไม่มี PR เปิดค้าง และยืนยัน `main` SHA ล่าสุด
 
 เมื่อต้องการทำงานต่อ ให้เริ่มตามลำดับนี้:
 
@@ -361,11 +434,12 @@ Commit หรือ PR ที่แก้:
 2. ตรวจ “บั๊กและเหตุการณ์ที่เคยพบ”
 3. เลือกงานแรกที่ยังไม่ติ๊กใน “งานลำดับถัดไป”
 4. ตรวจ `main` และ Pull Request ที่ยังเปิด
-5. ตรวจ Supabase Migration ล่าสุด
-6. สร้าง Branch ใหม่ชื่อ `agent/{ชื่องาน}`
-7. พัฒนาและทดสอบบน Branch
-8. เปิด Pull Request และบันทึกผลทดสอบ
-9. หลัง Merge ให้อัปเดตเอกสารนี้ทันที
+5. ตรวจ Supabase Migration และ Edge Function เวอร์ชันล่าสุดเทียบกับ Production
+6. รันทดสอบพื้นฐานเดิมก่อนแก้ เพื่อแยกบั๊กเก่ากับบั๊กใหม่
+7. สร้าง Branch ใหม่ชื่อ `agent/{ชื่องาน}`
+8. พัฒนาและทดสอบบน Branch
+9. เปิด Draft Pull Request และบันทึกผลทดสอบ
+10. หลัง Merge ให้อัปเดตเอกสารนี้ทันที
 
 คำสั่งสำหรับเริ่มงานกับ AI ในอนาคต:
 
