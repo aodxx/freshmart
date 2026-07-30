@@ -342,7 +342,21 @@ async function lookupBarcode(value) {
   }
 
   scannerStatus.textContent = `กำลังค้นหา ${barcode}…`;
-  const data = await invokeCatalog({ action: 'lookup', barcode });
+  let data;
+  try {
+    data = await invokeCatalog({ action: 'lookup', barcode });
+  } catch (error) {
+    const message = String(error?.message || error || '');
+    if (/AUTH_REQUIRED|INVALID_SESSION|ADMIN_REQUIRED|INVALID_GTIN/.test(message)) {
+      throw error;
+    }
+
+    await stopScanner();
+    scannerModal.hide();
+    openForm(null, { barcode, source: 'manual' });
+    toast('warning', 'ค้นหาข้อมูลอัตโนมัติไม่สำเร็จ เปิดแบบฟอร์มให้กรอกสินค้าเองแล้ว');
+    return;
+  }
 
   await stopScanner();
   scannerModal.hide();
