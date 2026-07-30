@@ -24,6 +24,13 @@
 
 รัน migrations ตามลำดับใน `supabase/migrations/` ฐานข้อมูลจริงได้รับ migrations เหล่านี้แล้ว
 
+## Barcode & Open Product Dataset
+
+หน้า Admin สินค้ารองรับสแกน EAN/UPC/GTIN ตรวจเลข check digit ค้นข้อมูลจากฐานอ้างอิง
+และ Open Food Facts รวมถึงนำเข้า CSV/TSV โดยแยกข้อมูลอ้างอิงออกจากสินค้าขายจริง
+
+ดูวิธีติดตั้งและใช้งานใน [`docs/BARCODE_DATASET.md`](docs/BARCODE_DATASET.md)
+
 ## ตั้งผู้ดูแลระบบคนแรก
 
 1. สมัครสมาชิกผ่านหน้า `register.html`

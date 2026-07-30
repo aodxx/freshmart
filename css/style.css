@@ -402,6 +402,57 @@ textarea.form-control { min-height: 108px; }
 .admin-toolbar { padding: 16px; border: 1px solid var(--fm-line); border-radius: 20px; background: #fff; box-shadow: var(--fm-shadow-sm); }
 .admin-product { border: 1px solid var(--fm-line) !important; border-radius: 22px !important; box-shadow: var(--fm-shadow-sm) !important; }
 .admin-table-shell { overflow: hidden; border: 1px solid var(--fm-line); border-radius: 22px; background: #fff; box-shadow: var(--fm-shadow-sm); }
+.barcode-reader {
+  overflow: hidden;
+  min-height: 230px;
+  border: 2px dashed var(--fm-sky-200);
+  border-radius: 20px;
+  background: linear-gradient(145deg, var(--fm-sky-50), #fff);
+}
+.barcode-reader:empty { display: grid; place-items: center; }
+.barcode-reader:empty::before {
+  color: var(--fm-sky-600);
+  content: "▥";
+  font: 700 4rem/1 var(--fm-display);
+  opacity: .42;
+}
+.barcode-reader video { border-radius: 17px; object-fit: cover; }
+.scanner-status {
+  padding: 11px 14px;
+  border-radius: 13px;
+  color: var(--fm-ink-soft);
+  background: var(--fm-sky-50);
+  font-size: .86rem;
+  text-align: center;
+}
+.barcode-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 14px;
+  color: var(--fm-ink-soft);
+  font-size: .78rem;
+}
+.barcode-divider::before, .barcode-divider::after {
+  height: 1px;
+  flex: 1;
+  background: var(--fm-line);
+  content: "";
+}
+.dataset-note {
+  display: grid;
+  gap: 5px;
+  padding: 15px 17px;
+  border: 1px solid var(--fm-sky-200);
+  border-radius: 17px;
+  color: var(--fm-ink-soft);
+  background: var(--fm-sky-50);
+  font-size: .88rem;
+}
+.dataset-note strong { color: var(--fm-ink); }
+.dataset-note code { color: var(--fm-sky-700); }
+.import-progress .progress { height: 8px; border-radius: 99px; background: var(--fm-sky-100); }
+.import-progress .progress-bar { background: linear-gradient(90deg, var(--fm-sky-500), var(--fm-mint-400)); }
 .table { --bs-table-bg: transparent; --bs-table-color: var(--fm-ink); }
 .table thead th { padding-block: 14px; border-bottom-color: var(--fm-line); color: var(--fm-ink-soft); font-size: .75rem; font-weight: 700; white-space: nowrap; }
 .table tbody td { padding-block: 13px; border-bottom-color: #edf3f6; }
