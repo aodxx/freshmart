@@ -22,6 +22,15 @@ const admin = createClient(
   { auth: { persistSession: false, autoRefreshToken: false } },
 );
 
+function coordinate(value: unknown, min: number, max: number) {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < min || parsed > max) {
+    throw new Error("INVALID_GPS");
+  }
+  return parsed;
+}
+
 async function verifyLineUser(accessToken: string) {
   if (!accessToken || accessToken.length < 20) throw new Error("LINE_LOGIN_REQUIRED");
 
@@ -118,12 +127,28 @@ Deno.serve(async (req: Request) => {
     const customer = await getCustomer(String(body.accessToken || ""));
 
     if (action === "bootstrap") {
-      const [{ data: settings }, { data: addresses }] = await Promise.all([
+      const [{ data: settings }, { data: addresses }, { data: latestDelivery }] = await Promise.all([
         admin.from("store_settings").select("*").eq("id", 1).single(),
         admin.from("customer_addresses").select("*")
           .eq("customer_id", customer.id).order("is_default", { ascending: false }),
+        admin.from("orders")
+          .select(
+            "recipient_name,recipient_phone,shipping_address,delivery_latitude,delivery_longitude,created_at",
+          )
+          .eq("customer_id", customer.id)
+          .eq("fulfillment_method", "delivery")
+          .not("shipping_address", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
-      return json({ success: true, customer, settings, addresses: addresses || [] });
+      return json({
+        success: true,
+        customer,
+        settings,
+        addresses: addresses || [],
+        latest_delivery_address: latestDelivery || null,
+      });
     }
 
     if (action === "update_phone") {
@@ -154,10 +179,13 @@ Deno.serve(async (req: Request) => {
         recipient_name: recipientName,
         phone,
         address: addressText,
-        latitude: address.latitude || null,
-        longitude: address.longitude || null,
+        latitude: coordinate(address.latitude, -90, 90),
+        longitude: coordinate(address.longitude, -180, 180),
         is_default: Boolean(address.is_default),
       };
+      if ((row.latitude === null) !== (row.longitude === null)) {
+        throw new Error("INVALID_GPS_PAIR");
+      }
       const query = address.id
         ? admin.from("customer_addresses").update(row)
             .eq("id", address.id).eq("customer_id", customer.id)
@@ -169,7 +197,12 @@ Deno.serve(async (req: Request) => {
 
     if (action === "place_order") {
       const payload = body.order || {};
-      const { data: orderId, error } = await admin.rpc("place_liff_order", {
+      const latitude = coordinate(payload.delivery_latitude, -90, 90);
+      const longitude = coordinate(payload.delivery_longitude, -180, 180);
+      if ((latitude === null) !== (longitude === null)) {
+        throw new Error("INVALID_GPS_PAIR");
+      }
+      const { data: orderId, error } = await admin.rpc("place_liff_order_v2", {
         p_customer_id: customer.id,
         p_items: payload.items,
         p_fulfillment_method: payload.fulfillment_method,
@@ -180,10 +213,18 @@ Deno.serve(async (req: Request) => {
         p_pickup_at: payload.pickup_at || null,
         p_customer_note: payload.customer_note || null,
         p_coupon_code: payload.coupon_code || null,
+        p_address_id: payload.address_id || null,
+        p_delivery_latitude: latitude,
+        p_delivery_longitude: longitude,
+        p_delivery_location_source: payload.delivery_location_source || null,
+        p_save_address: Boolean(payload.save_address),
+        p_address_label: String(payload.address_label || "บ้าน").slice(0, 40),
       });
       if (error) throw error;
       const { data: order } = await admin.from("orders")
-        .select("id,order_number,total_amount,delivery_fee,status,payment_method,fulfillment_method")
+        .select(
+          "id,order_number,total_amount,delivery_fee,status,payment_method,fulfillment_method,delivery_latitude,delivery_longitude",
+        )
         .eq("id", orderId).single();
       await notifyAdmin(order, customer);
       return json({ success: true, order });
@@ -191,10 +232,22 @@ Deno.serve(async (req: Request) => {
 
     if (action === "list_orders") {
       const { data, error } = await admin.from("orders")
-        .select("*,order_items(*),payments(id,status,method,amount,slip_path)")
+        .select(
+          "*,order_items(*),payments(id,status,method,amount,slip_path),customer_receivables(id,original_amount,paid_amount,balance_amount,status,due_at,note,created_at,receivable_payments(id,amount,method,note,paid_at,created_at))",
+        )
         .eq("customer_id", customer.id).order("created_at", { ascending: false });
       if (error) throw error;
-      return json({ success: true, orders: data || [] });
+      const orders = data || [];
+      const outstandingTotal = orders.reduce((sum: number, order: any) => {
+        const receivables = Array.isArray(order.customer_receivables)
+          ? order.customer_receivables
+          : order.customer_receivables ? [order.customer_receivables] : [];
+        return sum + receivables.reduce(
+          (subtotal: number, row: any) => subtotal + Number(row.balance_amount || 0),
+          0,
+        );
+      }, 0);
+      return json({ success: true, orders, outstanding_total: outstandingTotal });
     }
 
     throw new Error("UNSUPPORTED_ACTION");

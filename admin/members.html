@@ -1,14 +1,135 @@
 <!doctype html>
 <html lang="th">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ลูกค้า | FreshMart Admin</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="../css/style.css" rel="stylesheet"></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ลูกค้า | FreshMart Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/style.css" rel="stylesheet">
+  <link href="../css/admin-members.css" rel="stylesheet">
+</head>
 <body class="admin-app">
-  <header class="admin-header"><div class="container admin-header__inner">
-    <a class="brand" href="index.html"><span class="brand__mark">FM</span><span class="brand__name">FreshMart Admin<small class="brand__caption">ศูนย์จัดการร้าน</small></span></a>
-    <nav class="admin-nav"><a href="index.html">คำสั่งซื้อ</a><a href="products.html">สินค้า</a><a class="is-active" href="members.html">ลูกค้า</a><a href="../index.html">เปิดหน้าร้าน ↗</a></nav>
-  </div></header>
+  <header class="admin-header">
+    <div class="container admin-header__inner">
+      <a class="brand" href="index.html">
+        <span class="brand__mark">FM</span>
+        <span class="brand__name">FreshMart Admin<small class="brand__caption">ศูนย์จัดการร้าน</small></span>
+      </a>
+      <nav class="admin-nav" aria-label="เมนูผู้ดูแล">
+        <a href="index.html">คำสั่งซื้อ</a>
+        <a href="products.html">สินค้า</a>
+        <a class="is-active" href="members.html" aria-current="page">ลูกค้า</a>
+        <a href="../index.html">เปิดหน้าร้าน ↗</a>
+      </nav>
+    </div>
+  </header>
+
   <main class="container py-4 py-lg-5">
-    <div class="page-heading"><h1>ลูกค้าและสมาชิก</h1><p>ข้อมูลจาก LINE LIFF และบัญชีผู้ดูแลระบบ</p></div>
-    <div class="empty-state fm-surface"><span class="empty-state__icon">👥</span><strong>โมดูลรายชื่อลูกค้ากำลังพัฒนา</strong><span>ฐานข้อมูลและสิทธิ์ RLS พร้อมแล้ว ขั้นถัดไปคือประวัติการซื้อและที่อยู่</span></div>
+    <div class="customer-page-head">
+      <div>
+        <span class="customer-page-head__eyebrow">Customer Center</span>
+        <h1>ลูกค้าและสมาชิก</h1>
+        <p>ดูข้อมูลจาก LINE LIFF ประวัติการซื้อ และช่องทางติดต่อในหน้าเดียว</p>
+      </div>
+      <button class="btn btn-outline-primary" type="button" data-refresh-customers>
+        <span aria-hidden="true">↻</span> อัปเดตข้อมูล
+      </button>
+    </div>
+
+    <section class="customer-kpis" aria-label="ภาพรวมลูกค้า" data-customer-kpis>
+      <article class="customer-kpi customer-kpi--blue">
+        <span class="customer-kpi__icon" aria-hidden="true">👥</span>
+        <span class="customer-kpi__label">ลูกค้าทั้งหมด</span>
+        <strong data-kpi-total>—</strong>
+        <small>บัญชีจาก LINE LIFF</small>
+      </article>
+      <article class="customer-kpi customer-kpi--mint">
+        <span class="customer-kpi__icon" aria-hidden="true">✨</span>
+        <span class="customer-kpi__label">ลูกค้าใหม่เดือนนี้</span>
+        <strong data-kpi-new>—</strong>
+        <small>เข้าร้านครั้งแรก</small>
+      </article>
+      <article class="customer-kpi customer-kpi--violet">
+        <span class="customer-kpi__icon" aria-hidden="true">↻</span>
+        <span class="customer-kpi__label">ลูกค้าซื้อซ้ำ</span>
+        <strong data-kpi-repeat>—</strong>
+        <small>ตั้งแต่ 2 ออเดอร์ขึ้นไป</small>
+      </article>
+      <article class="customer-kpi customer-kpi--coral">
+        <span class="customer-kpi__icon" aria-hidden="true">฿</span>
+        <span class="customer-kpi__label">ยอดซื้อสะสม</span>
+        <strong data-kpi-revenue>—</strong>
+        <small>ไม่รวมออเดอร์ยกเลิก</small>
+      </article>
+      <article class="customer-kpi customer-kpi--amber">
+        <span class="customer-kpi__icon" aria-hidden="true">!</span>
+        <span class="customer-kpi__label">ยอดค้างชำระ</span>
+        <strong data-kpi-outstanding>—</strong>
+        <small>รวมยอดที่ยังชำระไม่ครบ</small>
+      </article>
+    </section>
+
+    <section class="customer-toolbar" aria-label="ค้นหาและกรองลูกค้า">
+      <div class="customer-search">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" data-customer-search placeholder="ค้นหาชื่อหรือเบอร์โทร..." autocomplete="off">
+      </div>
+      <select class="form-select" data-customer-segment aria-label="กรองกลุ่มลูกค้า">
+        <option value="all">ลูกค้าทุกกลุ่ม</option>
+        <option value="no_orders">ยังไม่เคยซื้อ</option>
+        <option value="first_order">ซื้อ 1 ครั้ง</option>
+        <option value="repeat">ซื้อซ้ำ</option>
+        <option value="outstanding">มีค้างชำระ</option>
+        <option value="blocked">ถูกระงับ</option>
+      </select>
+      <select class="form-select" data-customer-sort aria-label="เรียงลำดับลูกค้า">
+        <option value="recent">ใช้งานล่าสุด</option>
+        <option value="last_order">สั่งซื้อล่าสุด</option>
+        <option value="spent">ยอดซื้อสูงสุด</option>
+        <option value="orders">จำนวนออเดอร์</option>
+        <option value="outstanding">ยอดค้างชำระ</option>
+        <option value="name">ชื่อ ก–ฮ</option>
+      </select>
+    </section>
+
+    <div class="customer-result-head">
+      <div>
+        <h2>รายชื่อลูกค้า</h2>
+        <span data-customer-result-count>กำลังโหลดข้อมูล...</span>
+      </div>
+      <span class="customer-live-note"><i></i> ข้อมูลจากระบบจริง</span>
+    </div>
+
+    <div data-customer-list aria-live="polite">
+      <div class="customer-loading">
+        <div class="spinner-border" role="status"><span class="visually-hidden">กำลังโหลด</span></div>
+        <span>กำลังรวบรวมข้อมูลลูกค้าและประวัติการซื้อ...</span>
+      </div>
+    </div>
   </main>
+
+  <div class="modal fade customer-detail-modal" id="customerDetailModal" tabindex="-1"
+    aria-labelledby="customerDetailTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header customer-detail-head">
+          <div>
+            <span class="customer-detail-head__eyebrow">ข้อมูลลูกค้า</span>
+            <h2 class="modal-title h4 mb-0" id="customerDetailTitle">รายละเอียดลูกค้า</h2>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+        </div>
+        <div class="modal-body" data-customer-detail></div>
+        <div class="modal-footer customer-detail-actions">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิด</button>
+          <button type="button" class="btn btn-outline-danger" data-toggle-customer-status></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="module" src="../js/admin-members.js"></script>
 </body>
 </html>
