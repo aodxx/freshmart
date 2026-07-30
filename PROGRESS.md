@@ -60,8 +60,8 @@
 | หมวดหมู่สินค้า | 🧪 | เพิ่มหมวดหมู่จากหน้า Admin ได้ ไม่ผูกหมวดไว้ในโค้ด | เพิ่มแก้ไข/เรียงลำดับ/ปิดหมวดหมู่ |
 | สินค้า | 🧪 | เพิ่ม แก้ไข และปิดขายชั่วคราวได้ | ทดสอบฟอร์มกับข้อมูลจริงจำนวนมาก |
 | Product Variants | 🧪 | สินค้า 1 รายการมีหลายขนาด ราคา สต็อก และบาร์โค้ดได้ | เพิ่ม UI จัดการ SKU หากต้องการ |
-| Barcode Scanner | 🧪 | Admin สแกน EAN/UPC/GTIN ด้วยกล้องหรือกรอกเอง ตรวจ check digit และป้องกันบาร์โค้ดซ้ำ | Deploy migration/Edge Function และทดสอบกล้อง Android/iOS จริง |
-| Open Product Dataset | 🧪 | แยก `open_product_catalog`, ค้น local-first แล้ว fallback ไป Open Food Facts และนำเข้า CSV/TSV แบบ batch | ทดสอบ Dataset ภาษาไทยและตรวจ attribution ก่อนเปิดใช้จริง |
+| Barcode Scanner | 🧪 | Backend deploy แล้ว; Admin สแกน EAN/UPC/GTIN ด้วยกล้องหรือกรอกเอง ตรวจ check digit และป้องกันบาร์โค้ดซ้ำ | Merge PR และทดสอบกล้อง Android/iOS จริง |
+| Open Product Dataset | 🧪 | ตารางและ Edge Function deploy แล้ว; ค้น local-first, fallback ไป Open Food Facts และนำเข้า CSV/TSV แบบ batch | Merge PR แล้วทดสอบ Dataset ภาษาไทยขนาดเล็ก |
 | รูปสินค้า | 🧪 | Bucket `product-images` แบบ Public; บีบอัด WebP ก่อนอัปโหลด | ทดสอบกล้องมือถือหลายรุ่นและรูปแนวตั้ง/แนวนอน |
 | สต็อก | 🧪 | ตัดสต็อกระดับ Variant และมี Low-stock threshold | เพิ่มหน้ารายงาน Stock Movements และรับสินค้าเข้า |
 | ประวัติราคา | ✅ | บันทึกราคาเก่า ราคาใหม่ ผู้แก้ และเวลา | เพิ่มหน้าดูประวัติใน Admin |
