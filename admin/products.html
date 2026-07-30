@@ -18,7 +18,9 @@
         <h1 class="h2 mb-1">จัดการสินค้า</h1>
         <p class="text-secondary mb-0">สินค้า 1 รายการเพิ่มขนาดและราคาได้หลายแบบ</p>
       </div>
-      <div class="d-flex gap-2">
+      <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-outline-primary" data-import-catalog>⇩ นำเข้า Dataset</button>
+        <button class="btn btn-outline-primary" data-scan-product>▣ สแกนบาร์โค้ด</button>
         <button class="btn btn-outline-primary" data-add-category>+ หมวดหมู่</button>
         <button class="btn btn-primary" data-new-product>+ เพิ่มสินค้า</button>
       </div>
@@ -54,6 +56,8 @@
           <div class="modal-body">
             <input type="hidden" name="id">
             <input type="hidden" name="current_image_path">
+            <input type="hidden" name="external_image_url">
+            <input type="hidden" name="source_product_url">
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label">หมวดหมู่</label>
@@ -69,6 +73,14 @@
               <div class="col-12">
                 <label class="form-label">ชื่อสินค้า</label>
                 <input class="form-control" name="name" maxlength="150" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">แบรนด์</label>
+                <input class="form-control" name="brand" maxlength="150" placeholder="เช่น มาม่า, ดอยคำ">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">แหล่งข้อมูล</label>
+                <input class="form-control" name="data_source" maxlength="80" readonly placeholder="กรอกเอง">
               </div>
               <div class="col-12">
                 <label class="form-label">รายละเอียด</label>
@@ -100,19 +112,98 @@
     </div>
   </div>
 
+  <div class="modal fade" id="scannerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title h5 mb-1">สแกนบาร์โค้ดสินค้า</h2>
+            <p class="small text-secondary mb-0">รองรับ EAN-8, UPC-A, EAN-13 และ GTIN-14</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="barcode-reader" class="barcode-reader"></div>
+          <div class="scanner-status mt-3" data-scanner-status>กด “เปิดกล้อง” แล้วหันกล้องไปที่บาร์โค้ด</div>
+          <div class="d-flex gap-2 mt-3">
+            <button type="button" class="btn btn-primary flex-grow-1" data-start-scanner>เปิดกล้อง</button>
+            <button type="button" class="btn btn-light" data-stop-scanner disabled>หยุดกล้อง</button>
+          </div>
+          <div class="barcode-divider"><span>หรือกรอกเลขบาร์โค้ด</span></div>
+          <form class="input-group" data-barcode-form>
+            <input class="form-control" name="barcode" inputmode="numeric" autocomplete="off"
+              placeholder="เช่น 885..." minlength="8" maxlength="14" aria-label="เลขบาร์โค้ด">
+            <button class="btn btn-outline-primary" type="submit">ค้นหา</button>
+          </form>
+          <p class="small text-secondary mt-2 mb-0">
+            หมายเหตุ: เลขขึ้นต้น 885 หมายถึงรหัสที่จัดสรรโดย GS1 Thailand ไม่ได้ยืนยันประเทศที่ผลิต
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="catalogImportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content border-0">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title h5 mb-1">นำเข้า Open Product Dataset</h2>
+            <p class="small text-secondary mb-0">เก็บเป็นข้อมูลอ้างอิง ยังไม่เพิ่มเป็นสินค้าขายจนกว่าจะกำหนดราคาและสต็อก</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="dataset-note mb-3">
+            <strong>รองรับไฟล์ CSV/TSV จาก Open Food Facts</strong>
+            <span>คอลัมน์หลัก: <code>code</code>, <code>product_name</code>, <code>brands</code>,
+              <code>image_url</code>, <code>categories</code></span>
+            <span>ข้อมูลอ้างอิงจาก <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener">Open Food Facts</a>
+              ภายใต้ ODbL; รูปภาพใช้สัญญาอนุญาต CC BY-SA</span>
+          </div>
+          <label class="form-label" for="catalog-file">เลือกไฟล์ Dataset</label>
+          <input id="catalog-file" class="form-control" type="file"
+            accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" data-catalog-file>
+          <div class="form-check form-switch mt-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="thai-prefix-only" checked data-thai-prefix-only>
+            <label class="form-check-label" for="thai-prefix-only">นำเข้าเฉพาะบาร์โค้ดขึ้นต้น 885</label>
+          </div>
+          <div class="import-progress d-none mt-4" data-import-progress>
+            <div class="d-flex justify-content-between small mb-1">
+              <span data-import-label>กำลังอ่านไฟล์…</span>
+              <span data-import-count>0 รายการ</span>
+            </div>
+            <div class="progress" role="progressbar" aria-label="ความคืบหน้าการนำเข้า">
+              <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="alert alert-light border mt-3 mb-0 d-none" data-import-result></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิด</button>
+          <button type="button" class="btn btn-primary" data-start-import>เริ่มนำเข้า</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <template id="variantRowTemplate">
     <div class="variant-row border rounded-3 p-3 mb-2">
       <input type="hidden" data-field="id">
       <div class="row g-2 align-items-end">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label small">ชื่อขนาด</label>
           <input class="form-control" data-field="variant_name" placeholder="เช่น 325ml" maxlength="80" required>
         </div>
-        <div class="col-6 col-md-2">
+        <div class="col-md-3">
+          <label class="form-label small">บาร์โค้ด</label>
+          <input class="form-control" data-field="barcode" inputmode="numeric" placeholder="885..." maxlength="14">
+        </div>
+        <div class="col-6 col-md-1">
           <label class="form-label small">ราคา</label>
           <input class="form-control" data-field="price" type="number" min="0" step="0.01" required>
         </div>
-        <div class="col-6 col-md-2">
+        <div class="col-6 col-md-1">
           <label class="form-label small">สต็อก</label>
           <input class="form-control" data-field="stock_qty" type="number" min="0" step="1" required>
         </div>
@@ -129,6 +220,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
   <script type="module" src="../js/admin-products.js"></script>
 </body>
 </html>
