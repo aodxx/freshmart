@@ -450,7 +450,16 @@ async function importCatalogFile(file, thaiPrefixOnly, onProgress) {
             rejected += 1;
             continue;
           }
-          accepted.push({ ...row, barcode });
+          accepted.push({
+            barcode,
+            name,
+            brand: row.brands || row.brand || '',
+            image_url: row.image_url || row.image_front_url || '',
+            category_name: row.categories || row.category_name || '',
+            quantity_label: row.quantity || row.quantity_label || '',
+            source_updated_at: row.last_modified_datetime || null,
+            source: 'open_food_facts'
+          });
         }
         sendBatch(accepted)
           .then(() => {
