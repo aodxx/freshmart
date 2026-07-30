@@ -139,15 +139,34 @@ async function lookupOpenFoodFacts(barcode: string) {
     "quantity",
     "last_modified_t",
   ].join(",");
-  const response = await fetch(
-    `${OPEN_FOOD_FACTS_API}/${barcode}.json?fields=${encodeURIComponent(fields)}`,
-    { headers: { "User-Agent": USER_AGENT, "Accept": "application/json" } },
-  );
+  let response: Response;
+  try {
+    response = await fetch(
+      `${OPEN_FOOD_FACTS_API}/${barcode}.json?fields=${encodeURIComponent(fields)}`,
+      { headers: { "User-Agent": USER_AGENT, "Accept": "application/json" } },
+    );
+  } catch (error) {
+    console.warn("Open Food Facts request failed; using manual entry", error);
+    return null;
+  }
   if (response.status === 404) return null;
-  if (!response.ok) throw new Error(`OPEN_FOOD_FACTS_${response.status}`);
+  if (!response.ok) {
+    console.warn(`Open Food Facts returned ${response.status}; using manual entry`);
+    return null;
+  }
 
-  const payload = await response.json();
+  let payload;
+  try {
+    payload = await response.json();
+  } catch (error) {
+    console.warn("Open Food Facts returned invalid JSON; using manual entry", error);
+    return null;
+  }
   if (payload.status === "failure" || !payload.product) return null;
+  if (!firstNonEmpty(payload.product.product_name_th, payload.product.product_name)) {
+    console.warn("Open Food Facts product has no name; using manual entry");
+    return null;
+  }
   const row = normalizeCatalogRow({
     ...payload.product,
     barcode,
