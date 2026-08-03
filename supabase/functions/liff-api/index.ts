@@ -105,9 +105,10 @@ Deno.serve(async (req: Request) => {
       if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
         throw new Error("INVALID_SLIP_TYPE");
       }
-      const { data: order } = await admin.from("orders").select("id")
+      const { data: order } = await admin.from("orders").select("id,status")
         .eq("id", orderId).eq("customer_id", customer.id).single();
       if (!order) throw new Error("ORDER_NOT_FOUND");
+      if (["completed", "cancelled"].includes(order.status)) throw new Error("ORDER_CLOSED");
       const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
       const path = `${customer.id}/${orderId}/${crypto.randomUUID()}.${extension}`;
       const { error: uploadError } = await admin.storage.from("payment-slips")
@@ -117,6 +118,9 @@ Deno.serve(async (req: Request) => {
         slip_path: path,
         status: "submitted",
         submitted_at: new Date().toISOString(),
+        confirmed_at: null,
+        confirmed_by: null,
+        rejection_reason: null,
       }).eq("order_id", orderId);
       if (paymentError) throw paymentError;
       return json({ success: true, slipPath: path });
@@ -233,7 +237,7 @@ Deno.serve(async (req: Request) => {
     if (action === "list_orders") {
       const { data, error } = await admin.from("orders")
         .select(
-          "*,order_items(*),payments(id,status,method,amount,slip_path),customer_receivables(id,original_amount,paid_amount,balance_amount,status,due_at,note,created_at,receivable_payments(id,amount,method,note,paid_at,created_at))",
+          "*,order_items(*),payments(id,status,method,amount,slip_path,rejection_reason,submitted_at,confirmed_at),order_events(id,event_type,from_status,to_status,note,created_at),customer_receivables(id,original_amount,paid_amount,balance_amount,status,due_at,note,created_at,receivable_payments(id,amount,method,note,paid_at,created_at))",
         )
         .eq("customer_id", customer.id).order("created_at", { ascending: false });
       if (error) throw error;
