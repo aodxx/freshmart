@@ -3,9 +3,9 @@
 เอกสารนี้เป็นจุดอ้างอิงกลางสำหรับติดตามสถานะของโปรเจกต์ **ร้านชำเจ๊ดี / FreshMart**  
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
-> อัปเดตล่าสุด: 30 กรกฎาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — โค้ด Frontend หลักอยู่ใน `main`, Backend อยู่บน Production และพร้อมเริ่มทดสอบ End-to-End จริง**
-> จุดอ้างอิง GitHub: `main@85912fe5ae0127088e1ef97b4431f0e212deddd4`
+> อัปเดตล่าสุด: 3 สิงหาคม 2026
+> สถานะภาพรวม: **กำลังพัฒนา — Phase 1 FreshMart Admin PWA พัฒนาแล้วบน Branch แยก รอทดสอบกล้องและการติดตั้งบนมือถือจริงก่อน Merge**
+> จุดอ้างอิง GitHub: `main@450e17a421d2a9e6fa411c4eb55789fa5ea28a7e`
 
 ---
 
@@ -15,13 +15,13 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `85912fe5ae0127088e1ef97b4431f0e212deddd4` จาก PR #6 |
-| Pull Request ฟีเจอร์เปิดค้าง | ไม่มี ณ เวลาตรวจ (ไม่รวม PR สำหรับอัปเดตเอกสารนี้) |
+| GitHub `main` | Merge commit ล่าสุด `450e17a421d2a9e6fa411c4eb55789fa5ea28a7e` จาก PR #7 |
+| Branch งานปัจจุบัน | `agent/phase-1-admin-pwa` — Admin PWA และกล้องสแกนแบบแตะครั้งเดียว |
 | GitHub Pages | โค้ดจาก PR #3–#6 อยู่ใน `main` แล้ว |
 | Supabase Backend | Migration และ Edge Function สำหรับ Barcode, GPS และบัญชีค้างชำระถูก Deploy ตามประวัติงาน; ตรวจ Dashboard ซ้ำก่อนเปลี่ยน Backend |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
-| งานแรกที่ควรทำ | ทดสอบเส้นทางสั่งซื้อจริงบน LINE LIFF ตั้งแต่เลือกสินค้า → Checkout → GPS/ชำระเงิน → Admin → ประวัติลูกค้า |
+| งานแรกที่ควรทำ | ตรวจ Draft PR ของ Phase 1 แล้วทดสอบติดตั้ง PWA/สิทธิ์กล้องบน Android และ iPhone จริงก่อนอนุมัติ Merge |
 
 ### ข้อกำหนดที่ห้ามเปลี่ยนโดยไม่ทบทวน PRD
 
@@ -81,6 +81,7 @@
 | GitHub Pages | 🧪 | Repository เป็น Public; PR #3–#6 Merge เข้า `main` แล้ว | ทำ Production smoke test หลังการ Merge เอกสารรอบนี้ |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
+| FreshMart Admin PWA | 🧪 | Branch `agent/phase-1-admin-pwa` เพิ่ม Manifest, Service Worker, ไอคอน, Install Prompt, Offline Shell และแจ้งอัปเดต | ทดสอบการติดตั้ง Android Chrome และ iPhone Home Screen ก่อน Merge |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
 | โปรไฟล์ LINE | 🧪 | ดึงชื่อและรูปโปรไฟล์ พร้อมบันทึกประวัติลูกค้า | เบอร์โทรไม่สามารถดึงจาก LIFF Profile โดยตรง ต้องให้ลูกค้ากรอก/ยืนยัน |
 | Supabase Auth | ✅ | ใช้ Email/Password สำหรับผู้ดูแลระบบ | เปิด Leaked Password Protection เมื่อแผน/การตั้งค่ารองรับ |
@@ -88,7 +89,7 @@
 | หมวดหมู่สินค้า | 🧪 | เพิ่มหมวดหมู่จากหน้า Admin ได้ ไม่ผูกหมวดไว้ในโค้ด | เพิ่มแก้ไข/เรียงลำดับ/ปิดหมวดหมู่ |
 | สินค้า | 🧪 | เพิ่ม แก้ไข และปิดขายชั่วคราวได้ | ทดสอบฟอร์มกับข้อมูลจริงจำนวนมาก |
 | Product Variants | 🧪 | สินค้า 1 รายการมีหลายขนาด ราคา สต็อก และบาร์โค้ดได้ | เพิ่ม UI จัดการ SKU หากต้องการ |
-| Barcode Scanner | 🧪 | อยู่ใน `main` แล้ว; สแกน/กรอก EAN, UPC, GTIN, ตรวจ check digit, ป้องกันรหัสซ้ำ และเปิดฟอร์มกรอกเองเมื่อค้นไม่พบ | ทดสอบสิทธิ์กล้อง Android/iOS จริง |
+| Barcode Scanner | 🧪 | Phase 1 เปลี่ยนเป็นกดครั้งเดียวแล้วเปิดกล้องหลัง พร้อมแยกข้อผิดพลาดสิทธิ์/กล้อง/LINE WebView และมีรูปภาพ/กรอกเลขเป็นทางสำรอง | ทดสอบสิทธิ์กล้อง Android/iOS จริงก่อน Merge |
 | Open Product Dataset | 🧪 | อยู่ใน `main`; ค้น local-first แล้ว fallback ไป Open Food Facts; Edge Function ถูก Deploy แล้ว | ทดสอบนำเข้า Dataset ภาษาไทยแบบ CSV/TSV ขนาดเล็ก |
 | รูปสินค้า | 🧪 | Bucket `product-images` แบบ Public; บีบอัด WebP; PR #5 แก้กรอบ 4:3 และใช้ `object-fit: contain` แล้ว | ทดสอบรูปจริงแนวตั้ง/แนวนอนบนมือถือหลายรุ่น |
 | สต็อก | 🧪 | ตัดสต็อกระดับ Variant และมี Low-stock threshold | เพิ่มหน้ารายงาน Stock Movements และรับสินค้าเข้า |
@@ -217,6 +218,18 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 3 สิงหาคม 2026 — Phase 1 FreshMart Admin PWA Foundation
+
+- เพิ่ม Web App Manifest, ไอคอน 192/512 และ Maskable Icon
+- เพิ่ม Service Worker ขอบเขตเฉพาะ `admin/` และ Cache เฉพาะ App Shell ฝั่งหน้าเว็บ
+- เพิ่มปุ่มติดตั้งแอป คำแนะนำสำหรับ iPhone/iPad และระบบแจ้งอัปเดตเวอร์ชัน
+- เพิ่มหน้า Offline ที่อธิบายว่าธุรกรรมและสต็อกยังต้องใช้อินเทอร์เน็ต
+- เปลี่ยนปุ่มสแกนเป็นแตะครั้งเดียวแล้วเปิดกล้องหลังทันที
+- เพิ่มการตรวจสิทธิ์กล้องและข้อความแยกกรณีถูกปฏิเสธ ไม่พบกล้อง กล้องถูกใช้งาน และ LINE WebView
+- เพิ่มการถ่ายรูป/เลือกรูปบาร์โค้ดและกรอกเลขเองเป็นทางสำรอง
+- เพิ่ม Automated Tests สำหรับ GTIN, Camera Errors, Manifest, App Shell, Icons และ Scanner Fallbacks
+- ไม่มีการเปลี่ยน Database Migration, RLS, Edge Function หรือข้อมูล Supabase Production ใน Phase นี้
 
 ### 30 กรกฎาคม 2026 — Production Checkpoint หลัง Merge PR #3–#6
 
