@@ -40,6 +40,12 @@
       "icons": [{ "src": "./icons/admin-192.png", "sizes": "192x192" }]
     },
     {
+      "name": "บริหารสต็อก",
+      "short_name": "สต็อก",
+      "url": "./inventory.html",
+      "icons": [{ "src": "./icons/admin-192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "จัดการคำสั่งซื้อ",
       "short_name": "คำสั่งซื้อ",
       "url": "./index.html",
