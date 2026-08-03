@@ -1,17 +1,114 @@
 <!doctype html>
 <html lang="th">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#087db3"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><title>คำสั่งซื้อ | FreshMart Admin</title><link rel="manifest" href="./admin.webmanifest"><link rel="apple-touch-icon" href="./icons/admin-192.png"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="../css/style.css" rel="stylesheet"></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#087db3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>คำสั่งซื้อ | FreshMart Admin</title>
+  <link rel="manifest" href="./admin.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/admin-192.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/style.css" rel="stylesheet">
+  <link href="../css/admin-orders.css" rel="stylesheet">
+</head>
 <body class="admin-app">
-  <header class="admin-header"><div class="container admin-header__inner">
-    <a class="brand" href="index.html"><span class="brand__mark">FM</span><span class="brand__name">FreshMart Admin<small class="brand__caption">ศูนย์จัดการร้าน</small></span></a>
-    <nav class="admin-nav"><a class="is-active" href="index.html">คำสั่งซื้อ</a><a href="products.html">สินค้า</a><a href="members.html">ลูกค้า</a><a href="../index.html">เปิดหน้าร้าน ↗</a></nav>
-  </div></header>
-  <main class="container py-4 py-lg-5">
-    <div class="page-heading"><h1>จัดการคำสั่งซื้อ</h1><p>ตรวจการชำระเงินและอัปเดตสถานะจากจุดเดียว</p></div>
-    <div class="admin-table-shell table-responsive">
-      <table class="table align-middle mb-0"><thead><tr><th>ออเดอร์</th><th>ยอด</th><th>ชำระ</th><th>สถานะ</th><th>เลขพัสดุ</th><th>สลิป</th></tr></thead><tbody data-admin-orders></tbody></table>
+  <header class="admin-header">
+    <div class="container admin-header__inner">
+      <a class="brand" href="index.html">
+        <span class="brand__mark">FM</span>
+        <span class="brand__name">FreshMart Admin<small class="brand__caption">ศูนย์จัดการร้าน</small></span>
+      </a>
+      <nav class="admin-nav">
+        <a class="is-active" href="index.html">คำสั่งซื้อ</a>
+        <a href="products.html">สินค้า</a>
+        <a href="members.html">ลูกค้า</a>
+        <a href="../index.html">เปิดหน้าร้าน ↗</a>
+      </nav>
     </div>
+  </header>
+
+  <main class="container py-4 py-lg-5">
+    <div class="page-heading order-page-heading">
+      <div>
+        <span class="eyebrow order-eyebrow">ORDER OPERATIONS</span>
+        <h1>ศูนย์จัดการคำสั่งซื้อ</h1>
+        <p>รับออเดอร์ ตรวจสลิป จัดสินค้า และติดตามการส่งจากหน้าจอเดียว</p>
+      </div>
+      <button class="btn btn-outline-primary" type="button" data-refresh-orders>↻ รีเฟรช</button>
+    </div>
+
+    <section class="order-kpis" aria-label="สรุปคำสั่งซื้อ">
+      <button type="button" class="order-kpi is-active" data-kpi-filter="all">
+        <span>ทั้งหมด</span><strong data-kpi-all>0</strong><small>รายการ</small>
+      </button>
+      <button type="button" class="order-kpi" data-kpi-filter="pending">
+        <span>ออเดอร์ใหม่</span><strong data-kpi-new>0</strong><small>รอรับงาน</small>
+      </button>
+      <button type="button" class="order-kpi order-kpi--attention" data-kpi-filter="payment_review">
+        <span>รอตรวจสลิป</span><strong data-kpi-payment>0</strong><small>ต้องดำเนินการ</small>
+      </button>
+      <button type="button" class="order-kpi" data-kpi-filter="active">
+        <span>กำลังดำเนินการ</span><strong data-kpi-active>0</strong><small>จัด/ส่งสินค้า</small>
+      </button>
+    </section>
+
+    <section class="admin-toolbar order-toolbar" aria-label="ค้นหาและกรองคำสั่งซื้อ">
+      <label class="order-search">
+        <span class="visually-hidden">ค้นหา</span>
+        <input class="form-control" type="search" placeholder="ค้นหาเลขออเดอร์ ชื่อลูกค้า หรือเบอร์โทร" data-order-search>
+      </label>
+      <select class="form-select" aria-label="กรองสถานะ" data-order-status-filter>
+        <option value="all">ทุกสถานะ</option>
+        <option value="pending">ออเดอร์ใหม่</option>
+        <option value="awaiting_payment">รอตรวจการชำระ</option>
+        <option value="paid">ชำระแล้ว</option>
+        <option value="preparing">กำลังจัดสินค้า</option>
+        <option value="shipped">กำลังจัดส่ง</option>
+        <option value="completed">สำเร็จ</option>
+        <option value="cancelled">ยกเลิก</option>
+      </select>
+      <select class="form-select" aria-label="กรองช่องทางรับสินค้า" data-order-fulfillment-filter>
+        <option value="all">ทุกช่องทาง</option>
+        <option value="delivery">ร้านจัดส่ง</option>
+        <option value="pickup">รับหน้าร้าน</option>
+      </select>
+    </section>
+
+    <div class="order-loading" data-order-loading>
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>กำลังโหลดคำสั่งซื้อ…</span>
+    </div>
+    <section class="admin-order-list" data-admin-orders aria-live="polite"></section>
+    <section class="empty-state fm-surface" data-order-empty hidden>
+      <span class="empty-state__icon">🧾</span>
+      <strong>ไม่พบคำสั่งซื้อ</strong>
+      <span>ลองเปลี่ยนคำค้นหาหรือตัวกรอง</span>
+    </section>
   </main>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script type="module" src="../js/admin-pwa.js"></script><script type="module" src="../js/admin-orders.js"></script>
+
+  <div class="modal fade order-detail-modal" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header order-detail-head">
+          <div>
+            <small>รายละเอียดคำสั่งซื้อ</small>
+            <h2 class="modal-title h4 mb-0" id="orderDetailTitle" data-detail-title>—</h2>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+        </div>
+        <div class="modal-body" data-order-detail></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิด</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="module" src="../js/admin-pwa.js"></script>
+  <script type="module" src="../js/admin-orders.js"></script>
 </body>
 </html>
