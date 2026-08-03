@@ -2,6 +2,7 @@ import {
   supabase, money, toast, requireAdmin, productImageUrl, escapeHtml
 } from './supabaseClient.js';
 import { hasValidGtinCheckDigit, normalizeBarcode } from './barcode.js';
+import { cameraErrorDetails } from './camera.js';
 
 const form = document.querySelector('[data-product-form]');
 const list = document.querySelector('[data-products-list]');
@@ -13,6 +14,8 @@ const importModal = new bootstrap.Modal('#catalogImportModal');
 const scannerStatus = document.querySelector('[data-scanner-status]');
 const startScannerButton = document.querySelector('[data-start-scanner]');
 const stopScannerButton = document.querySelector('[data-stop-scanner]');
+const cameraHelp = document.querySelector('[data-camera-help]');
+const cameraImageInput = document.querySelector('[data-barcode-image]');
 let categories = [];
 let products = [];
 let barcodeScanner = null;
@@ -321,18 +324,58 @@ function scannerFormats() {
 }
 
 async function stopScanner() {
-  if (!barcodeScanner || !scannerRunning) return;
+  if (!barcodeScanner) return;
+  const scanner = barcodeScanner;
   try {
-    await barcodeScanner.stop();
-    await barcodeScanner.clear();
+    if (scannerRunning) await scanner.stop();
   } catch (error) {
     console.warn('หยุดกล้องไม่สำเร็จ', error);
   } finally {
+    try {
+      await scanner.clear();
+    } catch {
+      // A scanner that failed before rendering has nothing to clear.
+    }
+    barcodeScanner = null;
     scannerRunning = false;
     scannerResultPending = false;
     startScannerButton.disabled = false;
+    startScannerButton.classList.remove('d-none');
     stopScannerButton.disabled = true;
   }
+}
+
+async function cameraPermissionState() {
+  if (!navigator.permissions?.query) return 'unknown';
+  try {
+    return (await navigator.permissions.query({ name: 'camera' })).state;
+  } catch {
+    return 'unknown';
+  }
+}
+
+function hideCameraHelp() {
+  cameraHelp.classList.add('d-none');
+  cameraHelp.querySelector('[data-open-browser]').classList.add('d-none');
+}
+
+function showCameraHelp(error) {
+  const details = cameraErrorDetails(error, {
+    isSecureContext: window.isSecureContext,
+    hasMediaDevices: Boolean(navigator.mediaDevices?.getUserMedia),
+    userAgent: navigator.userAgent
+  });
+  cameraHelp.querySelector('[data-camera-help-title]').textContent = details.title;
+  cameraHelp.querySelector('[data-camera-help-message]').textContent = details.message;
+  const browserLink = cameraHelp.querySelector('[data-open-browser]');
+  if (details.code === 'embedded_browser') {
+    browserLink.href = window.location.href;
+    browserLink.classList.remove('d-none');
+  }
+  cameraHelp.classList.remove('d-none');
+  scannerStatus.dataset.state = 'error';
+  scannerStatus.textContent = details.title;
+  return details;
 }
 
 async function lookupBarcode(value) {
@@ -389,16 +432,27 @@ async function lookupBarcode(value) {
 async function startScanner() {
   if (!window.Html5Qrcode) throw new Error('โหลดเครื่องมือสแกนไม่สำเร็จ กรุณารีเฟรชหน้า');
   if (scannerRunning) return;
+  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+    throw new Error('CAMERA_UNAVAILABLE');
+  }
 
+  await stopScanner();
+  hideCameraHelp();
   barcodeScanner = new window.Html5Qrcode('barcode-reader', {
     formatsToSupport: scannerFormats(),
     verbose: false
   });
   startScannerButton.disabled = true;
+  startScannerButton.classList.add('d-none');
   stopScannerButton.disabled = false;
-  scannerStatus.textContent = 'กำลังเปิดกล้อง…';
+  const permission = await cameraPermissionState();
+  scannerStatus.dataset.state = 'loading';
+  scannerStatus.textContent = permission === 'prompt'
+    ? 'กรุณากด “อนุญาต” เพื่อเปิดกล้องหลัง…'
+    : 'กำลังเปิดกล้องหลัง…';
   try {
     scannerResultPending = false;
+    scannerRunning = true;
     await barcodeScanner.start(
       { facingMode: 'environment' },
       { fps: 12, qrbox: { width: 280, height: 130 }, aspectRatio: 1.7778 },
@@ -416,14 +470,56 @@ async function startScanner() {
       },
       () => {}
     );
-    scannerRunning = true;
+    scannerStatus.dataset.state = 'ready';
     scannerStatus.textContent = 'จัดบาร์โค้ดให้อยู่ในกรอบ กล้องจะอ่านให้อัตโนมัติ';
   } catch (error) {
     scannerRunning = false;
+    try {
+      await barcodeScanner?.clear();
+    } catch {
+      // Ignore cleanup errors after a rejected camera request.
+    }
+    barcodeScanner = null;
     startScannerButton.disabled = false;
+    startScannerButton.classList.remove('d-none');
     stopScannerButton.disabled = true;
-    scannerStatus.textContent = 'เปิดกล้องไม่ได้ ตรวจสิทธิ์กล้องหรือกรอกเลขด้านล่างแทน';
     throw error;
+  }
+}
+
+async function scanBarcodeImage(file) {
+  if (!file) return;
+  if (!window.Html5Qrcode) throw new Error('โหลดเครื่องมือสแกนไม่สำเร็จ กรุณารีเฟรชหน้า');
+  await stopScanner();
+  hideCameraHelp();
+  scannerStatus.dataset.state = 'loading';
+  scannerStatus.textContent = 'กำลังอ่านบาร์โค้ดจากรูป…';
+  barcodeScanner = new window.Html5Qrcode('barcode-reader', {
+    formatsToSupport: scannerFormats(),
+    verbose: false
+  });
+  try {
+    const decodedText = await barcodeScanner.scanFile(file, true);
+    navigator.vibrate?.(120);
+    await lookupBarcode(decodedText);
+  } finally {
+    await stopScanner();
+  }
+}
+
+async function openScanner() {
+  scannerStatus.dataset.state = 'loading';
+  scannerStatus.textContent = 'กำลังเตรียมกล้อง…';
+  hideCameraHelp();
+  startScannerButton.classList.add('d-none');
+  document.querySelector('[data-barcode-form]').reset();
+  cameraImageInput.value = '';
+  scannerModal.show();
+  try {
+    await startScanner();
+  } catch (error) {
+    const details = showCameraHelp(error);
+    toast('error', details.message);
   }
 }
 
@@ -493,21 +589,29 @@ async function importCatalogFile(file, thaiPrefixOnly, onProgress) {
 }
 
 document.querySelector('[data-new-product]').onclick = () => openForm();
-document.querySelector('[data-scan-product]').onclick = () => {
-  scannerStatus.textContent = 'กด “เปิดกล้อง” แล้วหันกล้องไปที่บาร์โค้ด';
-  document.querySelector('[data-barcode-form]').reset();
-  scannerModal.show();
-};
+document.querySelector('[data-scan-product]').onclick = openScanner;
 document.querySelector('[data-import-catalog]').onclick = () => {
   document.querySelector('[data-import-result]').classList.add('d-none');
   importModal.show();
 };
 document.querySelector('[data-add-variant]').onclick = () => addVariantRow();
 startScannerButton.onclick = () => startScanner().catch(error => {
-  toast('error', friendlyCatalogError(error));
+  const details = showCameraHelp(error);
+  toast('error', details.message);
 });
 stopScannerButton.onclick = stopScanner;
 scannerModalElement.addEventListener('hidden.bs.modal', stopScanner);
+cameraImageInput.addEventListener('change', async event => {
+  try {
+    await scanBarcodeImage(event.currentTarget.files[0]);
+  } catch (error) {
+    scannerStatus.dataset.state = 'error';
+    scannerStatus.textContent = friendlyCatalogError(error);
+    toast('error', 'อ่านบาร์โค้ดจากรูปไม่สำเร็จ ลองถ่ายให้ชัดขึ้นหรือกรอกเลขแทน');
+  } finally {
+    event.currentTarget.value = '';
+  }
+});
 document.querySelector('[data-barcode-form]').addEventListener('submit', async event => {
   event.preventDefault();
   const button = event.currentTarget.querySelector('button');
@@ -584,4 +688,5 @@ document.querySelector('[data-add-category]').onclick = async () => {
 (async () => {
   await requireAdmin();
   await loadData();
+  if (window.location.hash === '#scan') await openScanner();
 })().catch(error => Swal.fire('เปิดหน้าสินค้าไม่สำเร็จ', error.message, 'error'));
