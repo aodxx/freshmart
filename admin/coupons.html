@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#087db3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>คูปอง | FreshMart Admin</title>
+  <link rel="manifest" href="./admin.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/admin-192.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/style.css" rel="stylesheet">
+  <link href="../css/admin-coupons.css" rel="stylesheet">
+</head>
+<body class="admin-app coupon-app">
+  <header class="admin-header">
+    <div class="container admin-header__inner">
+      <a class="brand" href="dashboard.html">
+        <span class="brand__mark">FM</span>
+        <span class="brand__name">FreshMart Admin<small class="brand__caption">ศูนย์จัดการร้าน</small></span>
+      </a>
+      <nav class="admin-nav" aria-label="เมนูผู้ดูแล">
+        <a href="pos.html">ขาย POS</a><a href="dashboard.html">Dashboard</a><a href="index.html">คำสั่งซื้อ</a>
+        <a href="products.html">สินค้า</a><a href="inventory.html">สต็อก</a><a href="members.html">ลูกค้า</a>
+        <a class="is-active" href="coupons.html" aria-current="page">คูปอง</a><a href="../index.html">หน้าร้าน ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container py-4 py-lg-5">
+    <div class="coupon-heading">
+      <div>
+        <span class="eyebrow coupon-eyebrow">PROMOTION CONTROL</span>
+        <h1>จัดการคูปองส่วนลด</h1>
+        <p>สร้างแคมเปญ กำหนดเงื่อนไข และตรวจจำนวนการใช้จากข้อมูลจริง</p>
+      </div>
+      <button class="btn btn-primary" type="button" data-new-coupon>+ สร้างคูปอง</button>
+    </div>
+
+    <section class="coupon-kpis" aria-label="สรุปคูปอง">
+      <article><span>คูปองทั้งหมด</span><strong data-kpi-total>0</strong><small>รายการ</small></article>
+      <article class="coupon-kpi--active"><span>ใช้งานได้ตอนนี้</span><strong data-kpi-active>0</strong><small>พร้อมรับออเดอร์</small></article>
+      <article><span>รอเริ่ม</span><strong data-kpi-scheduled>0</strong><small>ตั้งเวลาไว้</small></article>
+      <article class="coupon-kpi--attention"><span>หมดอายุ/เต็มสิทธิ์</span><strong data-kpi-ended>0</strong><small>ควรตรวจสอบ</small></article>
+    </section>
+
+    <section class="admin-toolbar coupon-toolbar" aria-label="ค้นหาและกรองคูปอง">
+      <input class="form-control" type="search" placeholder="ค้นหารหัสคูปอง" data-coupon-search>
+      <select class="form-select" data-coupon-status aria-label="กรองสถานะคูปอง">
+        <option value="all">ทุกสถานะ</option>
+        <option value="active">ใช้งานได้</option>
+        <option value="scheduled">รอเริ่ม</option>
+        <option value="inactive">ปิดใช้งาน</option>
+        <option value="ended">หมดอายุ/เต็มสิทธิ์</option>
+      </select>
+      <button class="btn btn-outline-primary" type="button" data-refresh-coupons>↻ รีเฟรช</button>
+    </section>
+
+    <div class="coupon-loading fm-surface" data-coupon-loading>
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>กำลังโหลดคูปองล่าสุด…</span>
+    </div>
+    <section class="coupon-grid" data-coupon-list aria-live="polite"></section>
+    <section class="empty-state fm-surface" data-coupon-empty hidden>
+      <span class="empty-state__icon">🎟️</span><strong>ไม่พบคูปอง</strong><span>ลองเปลี่ยนคำค้นหาหรือตัวกรอง</span>
+    </section>
+
+    <section class="fm-surface coupon-audit-panel mt-4">
+      <div class="coupon-section-head">
+        <div><span class="eyebrow">APPEND-ONLY AUDIT</span><h2>ประวัติการเปลี่ยนแปลงล่าสุด</h2></div>
+        <small>เวลาไทย · แก้ย้อนหลังไม่ได้</small>
+      </div>
+      <div class="coupon-audit-list" data-coupon-audit></div>
+    </section>
+  </main>
+
+  <div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content border-0" data-coupon-form>
+        <div class="modal-header">
+          <div><small class="text-secondary">ตั้งค่าโปรโมชั่น</small><h2 class="modal-title h5 mb-0" id="couponModalTitle" data-coupon-form-title>สร้างคูปอง</h2></div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id">
+          <div class="coupon-form-grid">
+            <label class="coupon-field coupon-field--wide">
+              <span>รหัสคูปอง</span>
+              <input class="form-control text-uppercase" name="code" maxlength="32" pattern="[A-Za-z0-9][A-Za-z0-9_-]{2,31}" placeholder="เช่น SAVE50" required>
+              <small>3–32 ตัว ใช้ A–Z, 0–9, _ หรือ -</small>
+            </label>
+            <label class="coupon-field">
+              <span>รูปแบบส่วนลด</span>
+              <select class="form-select" name="discount_type" required>
+                <option value="percent">เปอร์เซ็นต์</option><option value="fixed">จำนวนเงิน</option>
+              </select>
+            </label>
+            <label class="coupon-field">
+              <span>มูลค่าส่วนลด</span>
+              <div class="input-group"><input class="form-control" type="number" name="discount_value" min="0.01" step="0.01" required><span class="input-group-text" data-discount-unit>%</span></div>
+            </label>
+            <label class="coupon-field">
+              <span>ยอดซื้อขั้นต่ำ</span>
+              <div class="input-group"><span class="input-group-text">฿</span><input class="form-control" type="number" name="min_order" min="0" step="0.01" value="0" required></div>
+            </label>
+            <label class="coupon-field" data-max-discount-field>
+              <span>ลดสูงสุด</span>
+              <div class="input-group"><span class="input-group-text">฿</span><input class="form-control" type="number" name="max_discount" min="0.01" step="0.01" placeholder="ไม่จำกัด"></div>
+            </label>
+            <label class="coupon-field">
+              <span>จำนวนสิทธิ์ทั้งหมด</span>
+              <input class="form-control" type="number" name="usage_limit" min="1" step="1" placeholder="ไม่จำกัด">
+              <small data-usage-note>ปล่อยว่างหากไม่จำกัดจำนวนครั้ง</small>
+            </label>
+            <label class="coupon-field">
+              <span>วันเวลาเริ่ม</span>
+              <input class="form-control" type="datetime-local" name="starts_at" required>
+            </label>
+            <label class="coupon-field">
+              <span>วันเวลาสิ้นสุด</span>
+              <input class="form-control" type="datetime-local" name="expires_at">
+              <small>ปล่อยว่างหากไม่กำหนดวันสิ้นสุด</small>
+            </label>
+            <label class="coupon-switch coupon-field--wide">
+              <input class="form-check-input" type="checkbox" name="is_active" checked>
+              <span><strong>เปิดใช้งานคูปอง</strong><small>ระบบยังตรวจวันเริ่ม วันหมดอายุ และจำนวนสิทธิ์อีกครั้ง</small></span>
+            </label>
+          </div>
+          <div class="coupon-preview" data-coupon-preview></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">บันทึกคูปอง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="module" src="../js/admin-pwa.js"></script>
+  <script type="module" src="../js/admin-coupons.js"></script>
+</body>
+</html>
