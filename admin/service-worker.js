@@ -1,7 +1,8 @@
-const CACHE_VERSION = 'freshmart-admin-shell-v3.0.0';
+const CACHE_VERSION = 'freshmart-admin-shell-v4.0.0';
 const APP_SHELL = [
   './',
   './index.html',
+  './pos.html',
   './products.html',
   './inventory.html',
   './members.html',
@@ -13,15 +14,18 @@ const APP_SHELL = [
   './icons/admin-maskable-512.png',
   '../css/style.css',
   '../css/admin-orders.css',
+  '../css/admin-pos.css',
   '../css/admin-inventory.css',
   '../css/admin-members.css',
   '../js/admin-pwa.js',
   '../js/admin-orders.js',
+  '../js/admin-pos.js',
   '../js/admin-products.js',
   '../js/admin-inventory.js',
   '../js/admin-members.js',
   '../js/supabaseClient.js',
   '../js/barcode.js',
+  '../js/promptpay.js',
   '../js/camera.js',
   '../js/config.js'
 ];
