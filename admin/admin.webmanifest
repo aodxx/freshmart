@@ -62,6 +62,12 @@
       "short_name": "คำสั่งซื้อ",
       "url": "./index.html",
       "icons": [{ "src": "./icons/admin-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "จัดการคูปองส่วนลด",
+      "short_name": "คูปอง",
+      "url": "./coupons.html",
+      "icons": [{ "src": "./icons/admin-192.png", "sizes": "192x192" }]
     }
   ]
 }

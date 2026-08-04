@@ -8,6 +8,7 @@
 - [ขายหน้าร้าน POS](https://aodxx.github.io/freshmart/admin/pos.html)
 - [จัดการสินค้า](https://aodxx.github.io/freshmart/admin/products.html)
 - [บริหารสต็อก](https://aodxx.github.io/freshmart/admin/inventory.html)
+- [จัดการคูปอง](https://aodxx.github.io/freshmart/admin/coupons.html)
 - [เปิดผ่าน LINE LIFF](https://liff.line.me/2010025658-kBKgsnzH)
 
 ## URLs
@@ -85,6 +86,18 @@ Frontend ไม่มีสิทธิ์แก้จำนวนคงเห�
 
 หน้าเว็บอ่านรีวิวผ่าน View ที่ไม่เปิดเผยรหัสลูกค้า ส่วนคำสั่งเขียนรีวิวต้องผ่าน `liff-api`
 ซึ่งตรวจ LINE Access Token แล้วเรียก RPC ที่ให้สิทธิ์เฉพาะ `service_role`
+
+## Admin Coupon Management
+
+หน้า `admin/coupons.html` ใช้สร้าง แก้ไข เปิด–ปิด และติดตามคูปอง:
+
+- กำหนดส่วนลดเปอร์เซ็นต์หรือจำนวนเงิน ยอดขั้นต่ำ และเพดานส่วนลด
+- กำหนดจำนวนสิทธิ์ วันเวลาเริ่ม และวันเวลาสิ้นสุดตามเวลาไทย
+- แสดงสถานะใช้งาน รอเริ่ม ปิดใช้งาน หมดอายุ หรือเต็มสิทธิ์
+- บันทึกผู้สร้าง ผู้แก้ และประวัติการเปลี่ยนแปลงแบบ Append-only
+
+Data API ไม่ให้ `anon` อ่านหรือเขียนตารางคูปอง และให้ Admin แก้เฉพาะคอลัมน์ตั้งค่า
+โดยไม่อนุญาตให้ Frontend เปลี่ยน `used_count` หรือ Audit History โดยตรง
 
 ## ตั้งผู้ดูแลระบบคนแรก
 

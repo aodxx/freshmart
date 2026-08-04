@@ -4,8 +4,8 @@
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
 > อัปเดตล่าสุด: 4 สิงหาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–5 ปิดแล้ว; Phase 6 Product Detail และรีวิวผู้ซื้อจริงพัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบ LIFF จริง**
-> จุดอ้างอิง GitHub: `main@d49fbb67b09aa3fe7a0f1878d5c7dc01ec443de1`
+> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–6 ปิดแล้ว; Phase 7 Admin Coupons พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบ PWA จริง**
+> จุดอ้างอิง GitHub: `main@7d7efe93a8d0fc975735570fa7b3d911c68845d1`
 
 ---
 
@@ -15,13 +15,13 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `d49fbb67b09aa3fe7a0f1878d5c7dc01ec443de1` จาก PR #12 (Phase 5) |
-| Branch งานปัจจุบัน | `agent/phase-6-product-detail-reviews` — Product Detail, Variant/จำนวน และรีวิวจากลูกค้าที่ซื้อจริง |
-| GitHub Pages | Phase 1–5 อยู่ใน `main`; หน้า Phase 6 รอ Merge |
-| Supabase Backend | Migration `customer_product_reviews` และ `customer_product_reviews_tuning` Deploy แล้ว; `liff-api` v6; Project `ACTIVE_HEALTHY` |
+| GitHub `main` | Merge commit ล่าสุด `7d7efe93a8d0fc975735570fa7b3d911c68845d1` จาก PR #13 (Phase 6) |
+| Branch งานปัจจุบัน | `agent/phase-7-admin-coupons` — จัดการคูปอง เงื่อนไข จำนวนสิทธิ์ และ Audit History |
+| GitHub Pages | Phase 1–6 อยู่ใน `main`; หน้า Phase 7 รอ Merge |
+| Supabase Backend | Migration `admin_coupon_management` และ `admin_coupon_management_tuning` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
-| งานแรกที่ควรทำ | ตรวจ Draft PR ของ Phase 6 แล้วทดสอบเปิด Product Detail, เลือก Variant/จำนวน และรีวิวผ่าน LINE LIFF จากออเดอร์ `completed` |
+| งานแรกที่ควรทำ | ตรวจ Draft PR ของ Phase 7 แล้วทดสอบสร้าง แก้ไข เปิด–ปิด และใช้คูปองกับออเดอร์ผ่าน Admin PWA/LINE LIFF |
 
 ### ข้อกำหนดที่ห้ามเปลี่ยนโดยไม่ทบทวน PRD
 
@@ -78,10 +78,10 @@
 
 | โมดูล | สถานะ | รายละเอียดล่าสุด | งานที่ยังเหลือ |
 |---|---:|---|---|
-| GitHub Pages | 🧪 | Phase 1–5 อยู่ใน `main`; Phase 6 รอ Merge | ตรวจหน้า Product Detail หลัง GitHub Pages Deploy |
+| GitHub Pages | 🧪 | Phase 1–6 อยู่ใน `main`; Phase 7 รอ Merge | ตรวจหน้า Admin Coupons หลัง GitHub Pages Deploy |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
-| FreshMart Admin PWA | ✅ | Phase 1–5 ปิดแล้ว; Dashboard อยู่ใน App Shell v5 และทดสอบยอดขายจริงแล้ว | เฝ้าดูการใช้งานจริง |
+| FreshMart Admin PWA | ✅ | Phase 1–6 ปิดแล้ว; Phase 7 เพิ่ม Coupons เข้า App Shell v7 | ทดสอบหน้า Coupons หลัง Merge |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
 | โปรไฟล์ LINE | 🧪 | ดึงชื่อและรูปโปรไฟล์ พร้อมบันทึกประวัติลูกค้า | เบอร์โทรไม่สามารถดึงจาก LIFF Profile โดยตรง ต้องให้ลูกค้ากรอก/ยืนยัน |
 | Supabase Auth | ✅ | ใช้ Email/Password สำหรับผู้ดูแลระบบ | เปิด Leaked Password Protection เมื่อแผน/การตั้งค่ารองรับ |
@@ -95,7 +95,7 @@
 | สต็อก | ✅ | Phase 3 ปิดแล้วหลังทดสอบรับเข้า ปรับลด ตรวจนับ และสแกนบาร์โค้ดจริง; POS ใช้ FEFO/Append-only Ledger เดิม | เฝ้าดูการใช้งานจริง |
 | Storefront POS | ✅ | Phase 4 ปิดแล้วหลัง Merge PR #11 และทดสอบขายจริงด้วยเงินสด PromptPay ส่วนลด และสแกนบาร์โค้ด | เฝ้าดูการใช้งานจริง |
 | ประวัติราคา | ✅ | บันทึกราคาเก่า ราคาใหม่ ผู้แก้ และเวลา; Phase 5 แสดง Price Audit บน Dashboard | เฝ้าดูการใช้งานจริง |
-| รายการสินค้า | 🧪 | Phase 6 เพิ่ม Product Detail เต็มรูปแบบ เลือก Variant จำนวน ราคา สต็อก และเพิ่มตะกร้า | Merge แล้วทดสอบบน LINE iOS/Android |
+| รายการสินค้า | ✅ | Phase 6 ปิดแล้วหลัง Merge PR #13 และทดสอบ Product Detail, Variant/จำนวน และเพิ่มตะกร้าผ่าน LINE LIFF | เฝ้าดูการใช้งานจริง |
 | ตะกร้า | 🧪 | เก็บใน `localStorage` โดยใช้ `variant_id`; รองรับจำนวนสินค้า | ทดสอบการ Sync DB สำหรับผู้ใช้ Supabase Auth |
 | Checkout | 🧪 | ตรวจราคา/สต็อกในฐานข้อมูล พร้อมเลือกที่อยู่เดิม ที่อยู่ล่าสุด หรือบันทึกที่อยู่ใหม่พร้อม GPS | ทดสอบออเดอร์จริงทั้ง 3 วิธีชำระและการอนุญาต GPS บน LINE |
 | การรับสินค้า | 🧪 | รองรับจัดส่งและรับเองหน้าร้าน | เพิ่มช่วงเวลานัดรับที่ปิด Slot เต็มได้ |
@@ -108,8 +108,8 @@
 | Admin Orders | ✅ | Phase 2 ปิดแล้ว: ตรวจสลิป สถานะ จัดส่ง Timeline คืนสต็อก และ LINE แจ้งลูกค้า | เฝ้าดูการใช้งานจริง |
 | Dashboard | ✅ | Phase 5 ปิดแล้วหลัง Merge PR #12 และทดสอบยอดวันนี้ กราฟ ช่องทางขาย และสินค้าขายดีด้วยรายการ POS จริง | เฝ้าดูการใช้งานจริง |
 | สมาชิก/ลูกค้า | 🧪 | PR #6 อยู่ใน `main`; Customer Center แสดงประวัติซื้อ ที่อยู่ GPS ปุ่มนำทาง บัญชีค้างชำระ และรับชำระบางส่วน | ทดสอบข้อมูลจริงบนมือถือและสร้างหนี้ทดสอบที่ควบคุมได้ 1 รายการ |
-| คูปอง | 🚧 | ฐานข้อมูลและ validation ฝั่ง DB พร้อม; มี `WELCOME10` | เพิ่มหน้า Admin จัดการคูปอง |
-| รีวิว | 🧪 | Phase 6 รองรับลูกค้า LINE LIFF, เฉลี่ยดาว, รายการรีวิว และเพิ่ม/แก้ไข/ลบเฉพาะผู้ซื้อที่ออเดอร์ `completed` | Merge แล้วทดสอบกับออเดอร์ลูกค้าจริง 1 รายการ |
+| คูปอง | 🧪 | Phase 7 เพิ่ม Admin Coupons, เงื่อนไข, จำนวนสิทธิ์, เปิด–ปิด, RLS/Column Grants และ Append-only Audit | Merge แล้วทดสอบสร้าง/แก้ไข/เปิด–ปิดและใช้กับออเดอร์จริง |
+| รีวิว | ✅ | Phase 6 ปิดแล้วหลัง Merge PR #13 และทดสอบเพิ่ม แก้ไข ลบ พร้อมคะแนนเฉลี่ยจากออเดอร์ `completed` ผ่าน LINE LIFF | เฝ้าดูการใช้งานจริง |
 | LINE แจ้งเตือน Admin | 🧪 | Edge Function รองรับส่งส่วนตัวและกลุ่มผ่าน Messaging API | ทดสอบ Token/User ID/Group ID จริงทุกปลายทาง |
 | LINE แจ้งกลับลูกค้า | 🚧 | มีฐานข้อมูล LINE User ID | เพิ่ม Push Message เมื่อตรวจเงิน/จัดส่ง/เสร็จสิ้น |
 | Realtime Orders | ⏳ | อยู่ในขอบเขตระบบ | เพิ่ม Subscription สำหรับสถานะออเดอร์ |
@@ -139,6 +139,7 @@
 | `orders` / `order_items` | คำสั่งซื้อและ Snapshot สินค้า/ขนาด/ราคา |
 | `payments` | วิธีชำระ สถานะ และ Path สลิป |
 | `coupons` | คูปองและเงื่อนไขส่วนลด |
+| `coupon_audit_log` | ประวัติการสร้าง แก้ไข และเปิด–ปิดคูปองแบบ Append-only |
 | `reviews` | รีวิวสินค้า |
 | `store_settings` | ข้อมูลร้าน บัญชี PromptPay LIFF และค่าจัดส่ง |
 
@@ -221,6 +222,18 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 4 สิงหาคม 2026 — Phase 7 Admin Coupon Management
+
+- ยืนยันปิด Phase 6 หลัง Merge PR #13 และทดสอบ Product Detail, Variant/จำนวน, ตะกร้า และรีวิวผู้ซื้อจริงผ่าน LINE LIFF สำเร็จ
+- เพิ่มหน้า `admin/coupons.html` แบบ Mobile-first พร้อม KPI ค้นหา และตัวกรองสถานะ
+- รองรับสร้าง แก้ไข เปิด–ปิดคูปอง รวมส่วนลด ขั้นต่ำ เพดาน จำนวนสิทธิ์ และช่วงเวลา
+- เพิ่ม `created_by`, `updated_by`, `updated_at` และ `coupon_audit_log` แบบ Append-only
+- จำกัด Data API ให้ `anon` ไม่มีสิทธิ์ และให้เฉพาะ Admin ที่เข้าสู่ระบบอ่าน/เขียนคอลัมน์ที่อนุญาต
+- ป้องกัน Frontend แก้ `used_count`, ผู้สร้าง/ผู้แก้ และ Audit History โดยตรง
+- เพิ่ม Constraint สำหรับรูปแบบรหัส ความสัมพันธ์ส่วนลด และจำนวนสิทธิ์ไม่ต่ำกว่าที่ใช้ไปแล้ว
+- Deploy Migration `admin_coupon_management` และ `admin_coupon_management_tuning` บน Supabase Production
+- PostgreSQL Dry Run, Admin/Non-admin/ACL/Audit Smoke Test และ Automated Tests ผ่าน; ข้อมูลทดสอบถูก Rollback
 
 ### 4 สิงหาคม 2026 — Phase 6 Product Detail & Verified Reviews
 
@@ -469,7 +482,7 @@ Commit หรือ PR ที่แก้:
 
 - [x] Product Detail
 - [x] รีวิวสินค้า
-- [ ] Admin Coupons
+- [x] Admin Coupons
 - [x] QR PromptPay ตามยอดสำหรับ Storefront POS
 - [ ] Realtime Order Status
 - [ ] UI ให้ลูกค้าแก้ไข/ลบ/ตั้งที่อยู่เริ่มต้น
@@ -493,6 +506,7 @@ Commit หรือ PR ที่แก้:
 | Admin สินค้า/บาร์โค้ด | `admin/products.html`, `js/admin-products.js`, `js/barcode.js` |
 | Admin ขายหน้าร้าน POS | `admin/pos.html`, `js/admin-pos.js`, `js/promptpay.js`, `css/admin-pos.css` |
 | Admin Dashboard/รายงาน | `admin/dashboard.html`, `js/admin-dashboard.js`, `css/admin-dashboard.css` |
+| Admin คูปอง | `admin/coupons.html`, `js/admin-coupons.js`, `css/admin-coupons.css` |
 | Admin สต็อก | `admin/inventory.html`, `js/admin-inventory.js`, `css/admin-inventory.css` |
 | Admin ลูกค้า | `admin/members.html`, `js/admin-members.js`, `css/admin-members.css` |
 | Admin ออเดอร์ | `admin/orders.html`, `js/admin-orders.js` |
@@ -505,6 +519,7 @@ Commit หรือ PR ที่แก้:
 | POS tests | `tests/pos.test.mjs` |
 | Dashboard tests | `tests/dashboard.test.mjs` |
 | Product Detail/Review tests | `tests/product-detail-reviews.test.mjs` |
+| Admin Coupon tests | `tests/admin-coupons.test.mjs` |
 
 ### หลักการ Deploy
 
