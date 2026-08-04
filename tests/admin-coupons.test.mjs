@@ -77,7 +77,7 @@ test('every primary Admin page and PWA shortcut expose coupon management', async
   const manifest = JSON.parse(await read('admin/admin.webmanifest'));
   assert.ok(manifest.shortcuts.some(shortcut => shortcut.url === './coupons.html'));
   const worker = await read('admin/service-worker.js');
-  assert.match(worker, /freshmart-admin-shell-v8\.0\.0/);
+  assert.match(worker, /freshmart-admin-shell-v10\.0\.0/);
   assert.match(worker, /\.\/coupons\.html/);
   assert.match(worker, /admin-coupons\.(?:css|js)/);
 });

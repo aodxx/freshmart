@@ -21,6 +21,7 @@ const state = {
   customers: [],
   query: '',
   segment: 'all',
+  labelFilter: 'all',
   sort: 'recent',
   selectedId: null
 };
@@ -30,6 +31,7 @@ const elements = {
   resultCount: document.querySelector('[data-customer-result-count]'),
   search: document.querySelector('[data-customer-search]'),
   segment: document.querySelector('[data-customer-segment]'),
+  labelFilter: document.querySelector('[data-customer-label-filter]'),
   sort: document.querySelector('[data-customer-sort]'),
   refresh: document.querySelector('[data-refresh-customers]'),
   detail: document.querySelector('[data-customer-detail]'),
@@ -103,8 +105,26 @@ const bangkokMonthKey = value => {
 const isSameMonth = value => bangkokMonthKey(value) === bangkokMonthKey(Date.now());
 const activeOrders = customer => customer.orders.filter(order => order.status !== 'cancelled');
 
-const enrichCustomers = (customers, addresses, orders, receivables, receivablePayments) =>
-  customers.map(customer => {
+const enrichCustomers = (
+  customers,
+  addresses,
+  orders,
+  receivables,
+  receivablePayments,
+  contexts,
+  contextAudits,
+  profiles
+) => {
+  const profileNames = new Map(profiles.map(profile => [profile.id, profile.full_name]));
+  const contextByCustomer = new Map(contexts.map(context => [context.customer_id, context]));
+  const auditsByCustomer = contextAudits.reduce((groups, audit) => {
+    const rows = groups.get(audit.customer_id) || [];
+    rows.push({ ...audit, changedByName: profileNames.get(audit.changed_by) || 'ผู้ดูแลระบบ' });
+    groups.set(audit.customer_id, rows);
+    return groups;
+  }, new Map());
+
+  return customers.map(customer => {
     const customerOrders = orders
       .filter(order => order.customer_id === customer.id)
       .sort((a, b) => toTime(b.created_at) - toTime(a.created_at));
@@ -124,6 +144,14 @@ const enrichCustomers = (customers, addresses, orders, receivables, receivablePa
       receivable: customerReceivables.find(receivable => receivable.order_id === order.id) || null
     }));
 
+    const context = contextByCustomer.get(customer.id) || {
+      customer_id: customer.id,
+      labels: [],
+      internal_note: null,
+      updated_by: null,
+      updated_at: null
+    };
+
     return {
       ...customer,
       addresses: addresses.filter(address => address.customer_id === customer.id),
@@ -135,9 +163,38 @@ const enrichCustomers = (customers, addresses, orders, receivables, receivablePa
         (sum, receivable) => sum + Number(receivable.balance_amount || 0),
         0
       ),
-      lastOrderAt: validOrders[0]?.created_at || null
+      lastOrderAt: validOrders[0]?.created_at || null,
+      context: {
+        ...context,
+        labels: Array.isArray(context.labels) ? context.labels : [],
+        updatedByName: profileNames.get(context.updated_by) || 'ผู้ดูแลระบบ'
+      },
+      contextHistory: auditsByCustomer.get(customer.id) || []
     };
   });
+};
+
+const labelMarkup = (labels, limit = 3) => {
+  const visible = labels.slice(0, limit);
+  if (!visible.length) return '';
+  return `<div class="customer-labels">${visible.map(label =>
+    `<span class="customer-label">${escapeHtml(label)}</span>`
+  ).join('')}${labels.length > limit
+    ? `<span class="customer-label customer-label--more">+${labels.length - limit}</span>`
+    : ''}</div>`;
+};
+
+const renderLabelFilterOptions = () => {
+  const selected = state.labelFilter;
+  const labels = [...new Set(state.customers.flatMap(customer => customer.context.labels))]
+    .sort((a, b) => a.localeCompare(b, 'th'));
+  elements.labelFilter.innerHTML = `
+    <option value="all">ทุกป้ายกำกับ</option>
+    <option value="none">ยังไม่มีป้ายกำกับ</option>
+    ${labels.map(label => `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`).join('')}`;
+  elements.labelFilter.value = labels.includes(selected) || selected === 'none' ? selected : 'all';
+  state.labelFilter = elements.labelFilter.value;
+};
 
 const updateKpis = () => {
   elements.total.textContent = state.customers.length.toLocaleString('th-TH');
@@ -156,7 +213,9 @@ const filteredCustomers = () => {
   const rows = state.customers.filter(customer => {
     const matchesSearch = !normalizedQuery || [
       customer.display_name,
-      customer.phone
+      customer.phone,
+      customer.context.internal_note,
+      ...customer.context.labels
     ].some(value => String(value || '').toLocaleLowerCase('th-TH').includes(normalizedQuery));
 
     const matchesSegment = {
@@ -167,7 +226,10 @@ const filteredCustomers = () => {
       outstanding: customer.outstandingTotal > 0,
       blocked: customer.status === 'blocked'
     }[state.segment];
-    return matchesSearch && matchesSegment;
+    const matchesLabel = state.labelFilter === 'all' ||
+      (state.labelFilter === 'none' && !customer.context.labels.length) ||
+      customer.context.labels.includes(state.labelFilter);
+    return matchesSearch && matchesSegment && matchesLabel;
   });
 
   return rows.sort((a, b) => {
@@ -207,6 +269,7 @@ const renderCustomers = () => {
         </div>
         <span class="customer-card__contact">${phoneMarkup(customer)}</span>
         <span class="customer-card__activity">ใช้งานล่าสุด ${thaiDate(customer.last_seen_at, true)}</span>
+        ${labelMarkup(customer.context.labels)}
         <div class="customer-card__metrics">
           <div class="customer-card__metric"><small>ออเดอร์</small><strong>${customer.orderCount.toLocaleString('th-TH')} ครั้ง</strong></div>
           <div class="customer-card__metric"><small>ยอดซื้อรวม</small><strong>${money(customer.totalSpent)}</strong></div>
@@ -329,6 +392,64 @@ const ordersMarkup = customer => {
   }).join('');
 };
 
+const contextHistoryMarkup = customer => {
+  if (!customer.contextHistory.length) {
+    return '<div class="customer-context-empty">ยังไม่มีประวัติการแก้ไข</div>';
+  }
+  return customer.contextHistory.slice(0, 10).map(entry => {
+    const labelsChanged = JSON.stringify(entry.old_labels || []) !== JSON.stringify(entry.new_labels || []);
+    const noteChanged = entry.old_note !== entry.new_note;
+    return `
+      <article class="customer-context-history__item">
+        <div>
+          <strong>${entry.action === 'created' ? 'สร้างข้อมูลภายใน' : 'อัปเดตข้อมูลภายใน'}</strong>
+          <span>${escapeHtml(entry.changedByName)} · ${thaiDate(entry.changed_at, true)}</span>
+        </div>
+        <ul>
+          ${labelsChanged ? `<li>ป้ายกำกับ: ${(entry.new_labels || []).length
+            ? escapeHtml(entry.new_labels.join(', '))
+            : 'ล้างป้ายกำกับทั้งหมด'}</li>` : ''}
+          ${noteChanged ? `<li>หมายเหตุ: ${entry.new_note
+            ? escapeHtml(entry.new_note)
+            : 'ล้างหมายเหตุ'}</li>` : ''}
+        </ul>
+      </article>`;
+  }).join('');
+};
+
+const customerContextMarkup = customer => {
+  const updated = customer.context.updated_at
+    ? `แก้ไขล่าสุดโดย ${escapeHtml(customer.context.updatedByName)} · ${thaiDate(customer.context.updated_at, true)}`
+    : 'ยังไม่มีข้อมูลภายในสำหรับลูกค้ารายนี้';
+  return `
+    <section class="customer-detail-section customer-context-panel">
+      <div class="customer-context-panel__head">
+        <div>
+          <h3>หมายเหตุและป้ายกำกับ</h3>
+          <p>ข้อมูลภายในสำหรับผู้ดูแล ลูกค้าจะไม่เห็นส่วนนี้</p>
+        </div>
+        <span class="customer-context-private">Admin only</span>
+      </div>
+      <label class="form-label" for="customer-context-labels">ป้ายกำกับ</label>
+      <input class="form-control" id="customer-context-labels" maxlength="320"
+        value="${escapeHtml(customer.context.labels.join(', '))}"
+        placeholder="เช่น ลูกค้าประจำ, VIP, ร้านอาหาร">
+      <small class="customer-context-help">คั่นแต่ละป้ายด้วยเครื่องหมายจุลภาค สูงสุด 10 ป้าย ป้ายละไม่เกิน 30 ตัวอักษร</small>
+      <div class="customer-context-preview">${labelMarkup(customer.context.labels, 10) || '<span>ยังไม่มีป้ายกำกับ</span>'}</div>
+      <label class="form-label mt-3" for="customer-context-note">หมายเหตุภายใน</label>
+      <textarea class="form-control" id="customer-context-note" rows="4" maxlength="2000"
+        placeholder="เช่น ความต้องการประจำ วันที่ควรติดต่อ หรือรายละเอียดที่ช่วยให้บริการได้ดีขึ้น">${escapeHtml(customer.context.internal_note || '')}</textarea>
+      <div class="customer-context-actions">
+        <small>${updated}</small>
+        <button class="btn btn-primary" type="button" data-save-customer-context>บันทึกข้อมูลภายใน</button>
+      </div>
+      <details class="customer-context-history">
+        <summary>ประวัติการเปลี่ยนแปลง (${customer.contextHistory.length.toLocaleString('th-TH')})</summary>
+        <div class="customer-context-history__list">${contextHistoryMarkup(customer)}</div>
+      </details>
+    </section>`;
+};
+
 function bindDetailActions() {
   elements.detail.querySelectorAll('[data-create-receivable]').forEach(button => {
     button.addEventListener('click', () => createReceivable(button.dataset.createReceivable));
@@ -338,6 +459,8 @@ function bindDetailActions() {
       recordReceivablePayment(button.dataset.recordReceivablePayment)
     );
   });
+  elements.detail.querySelector('[data-save-customer-context]')
+    ?.addEventListener('click', saveCustomerContext);
 }
 
 function openCustomerDetail(customerId) {
@@ -375,6 +498,7 @@ function openCustomerDetail(customerId) {
       <div class="customer-detail-metric ${customer.outstandingTotal > 0 ? 'customer-detail-metric--debt' : ''}"><small>ยอดค้างชำระ</small><strong>${money(customer.outstandingTotal)}</strong></div>
       <div class="customer-detail-metric"><small>ที่อยู่ที่บันทึก</small><strong>${customer.addresses.length.toLocaleString('th-TH')} แห่ง</strong></div>
     </div>
+    ${customerContextMarkup(customer)}
     <section class="customer-detail-section">
       <h3>ข้อมูลการใช้งาน</h3>
       <div class="customer-info-list">
@@ -399,6 +523,49 @@ function openCustomerDetail(customerId) {
 
   bindDetailActions();
   detailModal.show();
+}
+
+async function saveCustomerContext() {
+  const customer = state.customers.find(row => row.id === state.selectedId);
+  if (!customer) return;
+  const labelInput = elements.detail.querySelector('#customer-context-labels');
+  const noteInput = elements.detail.querySelector('#customer-context-note');
+  const saveButton = elements.detail.querySelector('[data-save-customer-context]');
+  const labels = [...new Map(String(labelInput.value || '')
+    .split(/[,\n]/)
+    .map(label => label.trim().replace(/\s+/g, ' '))
+    .filter(Boolean)
+    .map(label => [label.toLocaleLowerCase('th-TH'), label])).values()];
+  const note = String(noteInput.value || '').trim();
+
+  if (labels.length > 10) return toast('warning', 'กำหนดป้ายกำกับได้สูงสุด 10 ป้าย');
+  if (labels.some(label => Array.from(label).length > 30)) {
+    return toast('warning', 'ป้ายกำกับแต่ละป้ายต้องไม่เกิน 30 ตัวอักษร');
+  }
+  if (note.length > 2000) return toast('warning', 'หมายเหตุต้องไม่เกิน 2,000 ตัวอักษร');
+
+  saveButton.disabled = true;
+  saveButton.textContent = 'กำลังบันทึก...';
+  const { error } = await supabase.rpc('admin_save_customer_context', {
+    p_customer_id: customer.id,
+    p_labels: labels,
+    p_internal_note: note || null
+  });
+  saveButton.disabled = false;
+  saveButton.textContent = 'บันทึกข้อมูลภายใน';
+  if (error) {
+    const messages = {
+      CUSTOMER_LABEL_TOO_LONG: 'ป้ายกำกับแต่ละป้ายต้องไม่เกิน 30 ตัวอักษร',
+      CUSTOMER_LABEL_LIMIT_REACHED: 'กำหนดป้ายกำกับได้สูงสุด 10 ป้าย',
+      CUSTOMER_NOTE_TOO_LONG: 'หมายเหตุต้องไม่เกิน 2,000 ตัวอักษร',
+      ADMIN_REQUIRED: 'บัญชีนี้ไม่มีสิทธิ์จัดการข้อมูลภายในลูกค้า'
+    };
+    const key = Object.keys(messages).find(code => error.message.includes(code));
+    return toast('error', key ? messages[key] : error.message);
+  }
+
+  await loadCustomers(customer.id);
+  toast('success', 'บันทึกหมายเหตุและป้ายกำกับแล้ว');
 }
 
 async function createReceivable(orderId) {
@@ -533,7 +700,16 @@ async function loadCustomers(reopenId = null) {
   const user = await requireAdmin();
   if (!user) return;
 
-  const [customerResult, addressResult, orderResult, receivableResult, paymentResult] =
+  const [
+    customerResult,
+    addressResult,
+    orderResult,
+    receivableResult,
+    paymentResult,
+    contextResult,
+    contextAuditResult,
+    profileResult
+  ] =
     await Promise.all([
       supabase.from('customers')
         .select('id,line_user_id,display_name,picture_url,phone,is_phone_verified,is_friend,status,first_seen_at,last_seen_at,created_at')
@@ -550,13 +726,21 @@ async function loadCustomers(reopenId = null) {
         .order('created_at', { ascending: false }),
       supabase.from('receivable_payments')
         .select('id,receivable_id,amount,method,note,paid_at,created_at')
-        .order('paid_at', { ascending: false })
+        .order('paid_at', { ascending: false }),
+      supabase.from('customer_admin_context')
+        .select('customer_id,labels,internal_note,updated_by,updated_at'),
+      supabase.from('customer_context_audit_log')
+        .select('id,customer_id,action,old_labels,new_labels,old_note,new_note,changed_by,changed_at')
+        .order('changed_at', { ascending: false }),
+      supabase.from('profiles')
+        .select('id,full_name')
     ]);
 
   elements.refresh.disabled = false;
   elements.refresh.classList.remove('is-loading');
   const firstError = customerResult.error || addressResult.error || orderResult.error ||
-    receivableResult.error || paymentResult.error;
+    receivableResult.error || paymentResult.error || contextResult.error ||
+    contextAuditResult.error || profileResult.error;
   if (firstError) {
     elements.list.innerHTML = `
       <div class="customer-empty">
@@ -572,8 +756,12 @@ async function loadCustomers(reopenId = null) {
     addressResult.data || [],
     orderResult.data || [],
     receivableResult.data || [],
-    paymentResult.data || []
+    paymentResult.data || [],
+    contextResult.data || [],
+    contextAuditResult.data || [],
+    profileResult.data || []
   );
+  renderLabelFilterOptions();
   updateKpis();
   renderCustomers();
   if (reopenId && state.customers.some(customer => customer.id === reopenId)) {
@@ -587,6 +775,10 @@ elements.search.addEventListener('input', event => {
 });
 elements.segment.addEventListener('change', event => {
   state.segment = event.target.value;
+  renderCustomers();
+});
+elements.labelFilter.addEventListener('change', event => {
+  state.labelFilter = event.target.value;
   renderCustomers();
 });
 elements.sort.addEventListener('change', event => {

@@ -58,9 +58,9 @@ test('dashboard client calls one aggregate RPC and renders empty states safely',
   assert.doesNotMatch(script, /service_role|SUPABASE_SECRET_KEY/);
 });
 
-test('Admin PWA v8 caches the Dashboard shell and every primary page links to it', async () => {
+test('Admin PWA v10 caches the Dashboard shell and every primary page links to it', async () => {
   const worker = await read('admin/service-worker.js');
-  assert.match(worker, /freshmart-admin-shell-v8\.0\.0/);
+  assert.match(worker, /freshmart-admin-shell-v10\.0\.0/);
   for (const path of ['./dashboard.html', '../css/admin-dashboard.css', '../js/admin-dashboard.js']) {
     assert.ok(worker.includes(`'${path}'`));
   }

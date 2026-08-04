@@ -4,8 +4,8 @@
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
 > อัปเดตล่าสุด: 4 สิงหาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–8 ปิดแล้ว; Phase 9 Customer Saved Addresses พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบจริง**
-> จุดอ้างอิง GitHub: `main@99b8ee0e0b0c49c55b57ee469b373be9e05c06ff`
+> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–9 ปิดแล้ว; Phase 10 Customer Notes & Labels พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบจริง**
+> จุดอ้างอิง GitHub: `main@19214b2fe673edc83e35c28575024b8ac8ff86af`
 
 ---
 
@@ -15,13 +15,13 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `99b8ee0e0b0c49c55b57ee469b373be9e05c06ff` จาก PR #15 (Phase 8) |
-| Branch งานปัจจุบัน | `agent/phase-9-customer-addresses` — ลูกค้าเพิ่ม แก้ไข ลบ ตั้งที่อยู่หลัก และบันทึก GPS |
-| GitHub Pages | Phase 1–8 อยู่ใน `main`; หน้า Phase 9 รอ Merge |
-| Supabase Backend | Migration `customer_address_management`, `customer_address_management_tuning` และ `liff-api` v8 Deploy แล้ว; Project `ACTIVE_HEALTHY` |
+| GitHub `main` | Merge commit ล่าสุด `19214b2fe673edc83e35c28575024b8ac8ff86af` จาก PR #16 (Phase 9) |
+| Branch งานปัจจุบัน | `agent/phase-10-customer-notes-labels` — หมายเหตุและป้ายกำกับภายในสำหรับ Admin |
+| GitHub Pages | Phase 1–9 อยู่ใน `main`; หน้า Phase 10 รอ Merge |
+| Supabase Backend | Migration `customer_notes_labels`, `customer_notes_labels_tuning` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
-| งานแรกที่ควรทำ | Merge Draft PR Phase 9 แล้วทดสอบเพิ่ม แก้ไข ตั้งที่อยู่หลัก ลบ และเลือกใช้ใน Checkout ผ่าน LINE LIFF |
+| งานแรกที่ควรทำ | ทดสอบ Phase 10: บันทึกหมายเหตุ เพิ่ม/ลบป้าย กรองรายชื่อ และตรวจ Audit History ด้วยบัญชี Admin |
 
 ### ข้อกำหนดที่ห้ามเปลี่ยนโดยไม่ทบทวน PRD
 
@@ -78,10 +78,10 @@
 
 | โมดูล | สถานะ | รายละเอียดล่าสุด | งานที่ยังเหลือ |
 |---|---:|---|---|
-| GitHub Pages | 🧪 | Phase 1–8 อยู่ใน `main`; Phase 9 รอ Merge | ตรวจหน้า Saved Addresses และ Checkout หลัง Deploy |
+| GitHub Pages | 🧪 | Phase 1–9 อยู่ใน `main`; Phase 10 รอ Merge | ตรวจ Customer Center หลัง Deploy |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
-| FreshMart Admin PWA | 🧪 | Phase 8 อัปเดต App Shell v8 และ Admin Orders รับเหตุการณ์สดผ่าน Private Channel | ทดสอบอัปเดต Service Worker และสถานะเชื่อมต่อจริง |
+| FreshMart Admin PWA | 🧪 | Phase 10 อัปเดต App Shell v10 และเพิ่ม Customer Center ใน Shortcut | ทดสอบอัปเดต Service Worker บนอุปกรณ์จริง |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
 | โปรไฟล์ LINE | 🧪 | ดึงชื่อและรูปโปรไฟล์ พร้อมบันทึกประวัติลูกค้า | เบอร์โทรไม่สามารถดึงจาก LIFF Profile โดยตรง ต้องให้ลูกค้ากรอก/ยืนยัน |
 | Supabase Auth | ✅ | ใช้ Email/Password สำหรับผู้ดูแลระบบ | เปิด Leaked Password Protection เมื่อแผน/การตั้งค่ารองรับ |
@@ -107,7 +107,7 @@
 | ประวัติคำสั่งซื้อ | 🧪 | ลูกค้าดูออเดอร์ ยอดค้างชำระ ยอดคงเหลือ และประวัติรับชำระของตนผ่าน LIFF API | ทดสอบกับรายการค้างชำระจริง |
 | Admin Orders | ✅ | Phase 2 ปิดแล้ว: ตรวจสลิป สถานะ จัดส่ง Timeline คืนสต็อก และ LINE แจ้งลูกค้า | เฝ้าดูการใช้งานจริง |
 | Dashboard | ✅ | Phase 5 ปิดแล้วหลัง Merge PR #12 และทดสอบยอดวันนี้ กราฟ ช่องทางขาย และสินค้าขายดีด้วยรายการ POS จริง | เฝ้าดูการใช้งานจริง |
-| สมาชิก/ลูกค้า | 🧪 | Phase 9 เพิ่มหน้า Saved Addresses ให้ลูกค้า LINE เพิ่ม แก้ไข ลบ ตั้งค่าเริ่มต้น และบันทึก GPS; Admin Customer Center เดิมยังแสดงประวัติ/ยอดค้าง | ทดสอบหน้าใหม่บน LINE Android/iOS และสร้างหนี้ทดสอบที่ควบคุมได้ 1 รายการ |
+| สมาชิก/ลูกค้า | 🧪 | Phase 9 เพิ่ม Saved Addresses; Phase 10 เพิ่มหมายเหตุภายใน ป้ายกำกับ ค้นหา กรอง และ Audit History ใน Customer Center | ทดสอบหน้า Admin จริงและหน้า Saved Addresses บน LINE Android/iOS |
 | คูปอง | 🧪 | Phase 7 ปิดแล้ว; Phase 8 เพิ่ม Preview แบบ Server-authoritative โดยไม่เพิ่ม `used_count` และแสดงเงื่อนไขก่อนยืนยัน | ทดสอบยอดต่ำกว่า/เท่ากับ/สูงกว่า 200 บาท |
 | รีวิว | ✅ | Phase 6 ปิดแล้วหลัง Merge PR #13 และทดสอบเพิ่ม แก้ไข ลบ พร้อมคะแนนเฉลี่ยจากออเดอร์ `completed` ผ่าน LINE LIFF | เฝ้าดูการใช้งานจริง |
 | LINE แจ้งเตือน Admin | 🧪 | Edge Function รองรับส่งส่วนตัวและกลุ่มผ่าน Messaging API | ทดสอบ Token/User ID/Group ID จริงทุกปลายทาง |
@@ -222,6 +222,18 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 4 สิงหาคม 2026 — Phase 10 Customer Notes & Labels
+
+- ยืนยันปิด Phase 9 หลัง Merge PR #16
+- เพิ่มหมายเหตุภายในและป้ายกำกับสูงสุด 10 ป้ายต่อลูกค้าใน Customer Center
+- เพิ่มการค้นหาจากหมายเหตุและป้าย พร้อมตัวกรองป้ายกำกับแบบอัตโนมัติ
+- แสดงป้ายบนการ์ดลูกค้าและหน้า Detail; ข้อมูลทั้งหมดเป็น Admin-only
+- เพิ่ม Audit History แบบ Append-only พร้อมผู้แก้และเวลา
+- ลดสิทธิ์ตาราง `customers` โดยถอน Table Grant จาก `anon` และให้ Admin แก้ได้เฉพาะ `status`
+- อัปเดต Admin PWA App Shell เป็น v10 และเพิ่ม Shortcut Customer Center
+- Deploy Migration `customer_notes_labels` และ `customer_notes_labels_tuning` บน Supabase Production
+- PostgreSQL Dry Run, Production Smoke Test, Admin/Non-admin/ACL/Audit Check และ Automated Tests ผ่าน 73/73; ข้อมูลทดสอบถูก Rollback
 
 ### 4 สิงหาคม 2026 — Phase 9 Customer Saved Address Management
 
@@ -509,7 +521,7 @@ Commit หรือ PR ที่แก้:
 - [x] QR PromptPay ตามยอดสำหรับ Storefront POS
 - [x] Realtime Order Status
 - [x] UI ให้ลูกค้าแก้ไข/ลบ/ตั้งที่อยู่เริ่มต้น
-- [ ] หมายเหตุและป้ายกำกับลูกค้า เช่น ลูกค้าประจำ, VIP, ร้านอาหาร
+- [x] หมายเหตุและป้ายกำกับลูกค้า เช่น ลูกค้าประจำ, VIP, ร้านอาหาร
 - [ ] วิเคราะห์สินค้าที่ลูกค้าซื้อบ่อยและวันที่เหมาะสำหรับเสนอขายซ้ำ
 - [ ] ระบบคะแนนสะสมหรือส่วนลดเฉพาะลูกค้า
 

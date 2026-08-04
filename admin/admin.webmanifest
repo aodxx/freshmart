@@ -68,6 +68,12 @@
       "short_name": "คูปอง",
       "url": "./coupons.html",
       "icons": [{ "src": "./icons/admin-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "ลูกค้าและป้ายกำกับ",
+      "short_name": "ลูกค้า",
+      "url": "./members.html",
+      "icons": [{ "src": "./icons/admin-192.png", "sizes": "192x192" }]
     }
   ]
 }

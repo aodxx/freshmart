@@ -38,7 +38,7 @@
       <div>
         <span class="customer-page-head__eyebrow">Customer Center</span>
         <h1>ลูกค้าและสมาชิก</h1>
-        <p>ดูข้อมูลจาก LINE LIFF ประวัติการซื้อ และช่องทางติดต่อในหน้าเดียว</p>
+        <p>ดูข้อมูลจาก LINE LIFF ประวัติการซื้อ หมายเหตุ และป้ายกำกับภายในในหน้าเดียว</p>
       </div>
       <button class="btn btn-outline-primary" type="button" data-refresh-customers>
         <span aria-hidden="true">↻</span> อัปเดตข้อมูล
@@ -90,6 +90,9 @@
         <option value="repeat">ซื้อซ้ำ</option>
         <option value="outstanding">มีค้างชำระ</option>
         <option value="blocked">ถูกระงับ</option>
+      </select>
+      <select class="form-select" data-customer-label-filter aria-label="กรองตามป้ายกำกับ">
+        <option value="all">ทุกป้ายกำกับ</option>
       </select>
       <select class="form-select" data-customer-sort aria-label="เรียงลำดับลูกค้า">
         <option value="recent">ใช้งานล่าสุด</option>
