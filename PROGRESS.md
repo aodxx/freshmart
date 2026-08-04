@@ -4,8 +4,8 @@
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
 > อัปเดตล่าสุด: 4 สิงหาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–6 ปิดแล้ว; Phase 7 Admin Coupons พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบ PWA จริง**
-> จุดอ้างอิง GitHub: `main@7d7efe93a8d0fc975735570fa7b3d911c68845d1`
+> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–7 ปิดแล้ว; Phase 8 Realtime Orders + Coupon UX พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบจริง**
+> จุดอ้างอิง GitHub: `main@3cde244fcba2d4f32c5cf8ac461cbdb5d3f7b44b`
 
 ---
 
@@ -15,13 +15,13 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `7d7efe93a8d0fc975735570fa7b3d911c68845d1` จาก PR #13 (Phase 6) |
-| Branch งานปัจจุบัน | `agent/phase-7-admin-coupons` — จัดการคูปอง เงื่อนไข จำนวนสิทธิ์ และ Audit History |
-| GitHub Pages | Phase 1–6 อยู่ใน `main`; หน้า Phase 7 รอ Merge |
-| Supabase Backend | Migration `admin_coupon_management` และ `admin_coupon_management_tuning` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
+| GitHub `main` | Merge commit ล่าสุด `3cde244fcba2d4f32c5cf8ac461cbdb5d3f7b44b` จาก PR #14 (Phase 7) |
+| Branch งานปัจจุบัน | `agent/phase-8-realtime-orders-coupon-ux` — Realtime Order Status และแก้ข้อความ/ตรวจเงื่อนไขคูปองก่อนสั่งซื้อ |
+| GitHub Pages | Phase 1–7 อยู่ใน `main`; หน้า Phase 8 รอ Merge |
+| Supabase Backend | Migration `realtime_orders_coupon_preview` และ `liff-api` v7 Deploy แล้ว; Project `ACTIVE_HEALTHY` |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
-| งานแรกที่ควรทำ | ตรวจ Draft PR ของ Phase 7 แล้วทดสอบสร้าง แก้ไข เปิด–ปิด และใช้คูปองกับออเดอร์ผ่าน Admin PWA/LINE LIFF |
+| งานแรกที่ควรทำ | Merge Draft PR Phase 8 แล้วทดสอบ `WELCOME10` ที่ยอดต่ำกว่า/เท่ากับ/สูงกว่า 200 บาท และเปิดหน้าออเดอร์ลูกค้าคู่กับ Admin เพื่อตรวจสถานะสด |
 
 ### ข้อกำหนดที่ห้ามเปลี่ยนโดยไม่ทบทวน PRD
 
@@ -78,10 +78,10 @@
 
 | โมดูล | สถานะ | รายละเอียดล่าสุด | งานที่ยังเหลือ |
 |---|---:|---|---|
-| GitHub Pages | 🧪 | Phase 1–6 อยู่ใน `main`; Phase 7 รอ Merge | ตรวจหน้า Admin Coupons หลัง GitHub Pages Deploy |
+| GitHub Pages | 🧪 | Phase 1–7 อยู่ใน `main`; Phase 8 รอ Merge | ตรวจ Checkout, Customer Orders และ Admin Orders หลัง Deploy |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
-| FreshMart Admin PWA | ✅ | Phase 1–6 ปิดแล้ว; Phase 7 เพิ่ม Coupons เข้า App Shell v7 | ทดสอบหน้า Coupons หลัง Merge |
+| FreshMart Admin PWA | 🧪 | Phase 8 อัปเดต App Shell v8 และ Admin Orders รับเหตุการณ์สดผ่าน Private Channel | ทดสอบอัปเดต Service Worker และสถานะเชื่อมต่อจริง |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
 | โปรไฟล์ LINE | 🧪 | ดึงชื่อและรูปโปรไฟล์ พร้อมบันทึกประวัติลูกค้า | เบอร์โทรไม่สามารถดึงจาก LIFF Profile โดยตรง ต้องให้ลูกค้ากรอก/ยืนยัน |
 | Supabase Auth | ✅ | ใช้ Email/Password สำหรับผู้ดูแลระบบ | เปิด Leaked Password Protection เมื่อแผน/การตั้งค่ารองรับ |
@@ -97,7 +97,7 @@
 | ประวัติราคา | ✅ | บันทึกราคาเก่า ราคาใหม่ ผู้แก้ และเวลา; Phase 5 แสดง Price Audit บน Dashboard | เฝ้าดูการใช้งานจริง |
 | รายการสินค้า | ✅ | Phase 6 ปิดแล้วหลัง Merge PR #13 และทดสอบ Product Detail, Variant/จำนวน และเพิ่มตะกร้าผ่าน LINE LIFF | เฝ้าดูการใช้งานจริง |
 | ตะกร้า | 🧪 | เก็บใน `localStorage` โดยใช้ `variant_id`; รองรับจำนวนสินค้า | ทดสอบการ Sync DB สำหรับผู้ใช้ Supabase Auth |
-| Checkout | 🧪 | ตรวจราคา/สต็อกในฐานข้อมูล พร้อมเลือกที่อยู่เดิม ที่อยู่ล่าสุด หรือบันทึกที่อยู่ใหม่พร้อม GPS | ทดสอบออเดอร์จริงทั้ง 3 วิธีชำระและการอนุญาต GPS บน LINE |
+| Checkout | 🧪 | ตรวจราคา/สต็อกในฐานข้อมูล พร้อมที่อยู่/GPS; Phase 8 ตรวจคูปองก่อนสั่งซื้อและแปล `MIN_ORDER_NOT_MET` เป็นข้อความไทยพร้อมยอดที่ขาด | ทดสอบ `WELCOME10` รอบขั้นต่ำ 200 บาทผ่าน LINE LIFF |
 | การรับสินค้า | 🧪 | รองรับจัดส่งและรับเองหน้าร้าน | เพิ่มช่วงเวลานัดรับที่ปิด Slot เต็มได้ |
 | เงินสด | 🧪 | แสดง Popup เตรียมเงินตามยอดเมื่อเลือกจัดส่ง | ทดสอบข้อความและยอดรวมค่าจัดส่ง |
 | โอนธนาคาร | 🧪 | ข้อมูลบัญชีตั้งค่าใน `store_settings` พร้อมปุ่มคัดลอก | เพิ่ม QR/โลโก้ธนาคารหากต้องการ |
@@ -108,11 +108,11 @@
 | Admin Orders | ✅ | Phase 2 ปิดแล้ว: ตรวจสลิป สถานะ จัดส่ง Timeline คืนสต็อก และ LINE แจ้งลูกค้า | เฝ้าดูการใช้งานจริง |
 | Dashboard | ✅ | Phase 5 ปิดแล้วหลัง Merge PR #12 และทดสอบยอดวันนี้ กราฟ ช่องทางขาย และสินค้าขายดีด้วยรายการ POS จริง | เฝ้าดูการใช้งานจริง |
 | สมาชิก/ลูกค้า | 🧪 | PR #6 อยู่ใน `main`; Customer Center แสดงประวัติซื้อ ที่อยู่ GPS ปุ่มนำทาง บัญชีค้างชำระ และรับชำระบางส่วน | ทดสอบข้อมูลจริงบนมือถือและสร้างหนี้ทดสอบที่ควบคุมได้ 1 รายการ |
-| คูปอง | 🧪 | Phase 7 เพิ่ม Admin Coupons, เงื่อนไข, จำนวนสิทธิ์, เปิด–ปิด, RLS/Column Grants และ Append-only Audit | Merge แล้วทดสอบสร้าง/แก้ไข/เปิด–ปิดและใช้กับออเดอร์จริง |
+| คูปอง | 🧪 | Phase 7 ปิดแล้ว; Phase 8 เพิ่ม Preview แบบ Server-authoritative โดยไม่เพิ่ม `used_count` และแสดงเงื่อนไขก่อนยืนยัน | ทดสอบยอดต่ำกว่า/เท่ากับ/สูงกว่า 200 บาท |
 | รีวิว | ✅ | Phase 6 ปิดแล้วหลัง Merge PR #13 และทดสอบเพิ่ม แก้ไข ลบ พร้อมคะแนนเฉลี่ยจากออเดอร์ `completed` ผ่าน LINE LIFF | เฝ้าดูการใช้งานจริง |
 | LINE แจ้งเตือน Admin | 🧪 | Edge Function รองรับส่งส่วนตัวและกลุ่มผ่าน Messaging API | ทดสอบ Token/User ID/Group ID จริงทุกปลายทาง |
 | LINE แจ้งกลับลูกค้า | 🚧 | มีฐานข้อมูล LINE User ID | เพิ่ม Push Message เมื่อตรวจเงิน/จัดส่ง/เสร็จสิ้น |
-| Realtime Orders | ⏳ | อยู่ในขอบเขตระบบ | เพิ่ม Subscription สำหรับสถานะออเดอร์ |
+| Realtime Orders | 🧪 | Phase 8 ใช้ Database Broadcast: Customer topic แบบ token สุ่มและ Admin Private Channel ที่ตรวจ RLS; มี Polling สำรอง 45 วินาที | Merge แล้วทดสอบสองอุปกรณ์/สองหน้าจอจริง |
 
 ---
 
@@ -484,7 +484,7 @@ Commit หรือ PR ที่แก้:
 - [x] รีวิวสินค้า
 - [x] Admin Coupons
 - [x] QR PromptPay ตามยอดสำหรับ Storefront POS
-- [ ] Realtime Order Status
+- [x] Realtime Order Status
 - [ ] UI ให้ลูกค้าแก้ไข/ลบ/ตั้งที่อยู่เริ่มต้น
 - [ ] หมายเหตุและป้ายกำกับลูกค้า เช่น ลูกค้าประจำ, VIP, ร้านอาหาร
 - [ ] วิเคราะห์สินค้าที่ลูกค้าซื้อบ่อยและวันที่เหมาะสำหรับเสนอขายซ้ำ

@@ -1,4 +1,4 @@
-import { escapeHtml, money } from './supabaseClient.js';
+import { escapeHtml, money, supabase } from './supabaseClient.js';
 import { initLiff, liffApi, uploadSlip } from './liffClient.js';
 import { getCart } from './cart.js';
 
@@ -11,6 +11,54 @@ const statusText = {
   completed: 'สำเร็จ',
   cancelled: 'ยกเลิก'
 };
+
+const liveElement = document.querySelector('[data-order-live]');
+const realtimeChannels = new Map();
+let loadInFlight = false;
+let refreshTimer = null;
+
+function setLiveState(state, text) {
+  liveElement.className = `live-status ${state}`;
+  liveElement.textContent = text;
+}
+
+function queueLiveRefresh() {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => load({ silent: true }), 250);
+}
+
+function syncRealtimeChannels(orders) {
+  const activeTokens = new Set(orders
+    .filter(order => !['completed', 'cancelled'].includes(order.status) && order.realtime_token)
+    .slice(0, 20)
+    .map(order => order.realtime_token));
+
+  for (const [token, channel] of realtimeChannels) {
+    if (!activeTokens.has(token)) {
+      supabase.removeChannel(channel);
+      realtimeChannels.delete(token);
+    }
+  }
+
+  if (!activeTokens.size) {
+    setLiveState('', 'ไม่มีออเดอร์ที่กำลังติดตาม');
+    return;
+  }
+
+  for (const token of activeTokens) {
+    if (realtimeChannels.has(token)) continue;
+    const topic = `order:${token}`;
+    const channel = supabase.channel(topic)
+      .on('broadcast', { event: 'order_changed' }, queueLiveRefresh)
+      .subscribe(status => {
+        if (status === 'SUBSCRIBED') setLiveState('is-live', 'สถานะอัปเดตแบบสด');
+        if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status)) {
+          setLiveState('is-reconnecting', 'กำลังเชื่อมต่อใหม่ · ยังตรวจทุก 45 วินาที');
+        }
+      });
+    realtimeChannels.set(token, channel);
+  }
+}
 
 const paymentMethodText = {
   cash: 'เงินสด',
@@ -94,7 +142,10 @@ const timelineMarkup = order => {
     </details>`;
 };
 
-async function load() {
+async function load({ silent = false } = {}) {
+  if (loadInFlight) return;
+  loadInFlight = true;
+  try {
   document.querySelectorAll('[data-cart-count]').forEach(element => {
     element.textContent = getCart().reduce((sum, item) => sum + item.quantity, 0);
   });
@@ -157,6 +208,21 @@ async function load() {
       }
     });
   });
+  syncRealtimeChannels(orders);
+  } catch (error) {
+    if (!silent) throw error;
+    setLiveState('is-reconnecting', 'เชื่อมต่อชั่วคราวไม่ได้ · กำลังลองใหม่');
+  } finally {
+    loadInFlight = false;
+  }
 }
 
 load().catch(error => Swal.fire('โหลดคำสั่งซื้อไม่สำเร็จ', error.message, 'error'));
+setInterval(() => load({ silent: true }), 45000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') load({ silent: true });
+});
+window.addEventListener('pagehide', () => {
+  realtimeChannels.forEach(channel => supabase.removeChannel(channel));
+  realtimeChannels.clear();
+});

@@ -62,11 +62,16 @@
       </section>
       <section class="checkout-step">
         <h2 class="step-title"><span class="step-number">4</span>รายละเอียดเพิ่มเติม</h2>
-        <input class="form-control mb-3" name="coupon_code" placeholder="รหัสคูปอง (ถ้ามี)">
+        <label class="form-label" for="coupon-code">คูปองส่วนลด</label>
+        <div class="input-group">
+          <input class="form-control text-uppercase" id="coupon-code" name="coupon_code" autocomplete="off" placeholder="กรอกรหัสคูปอง (ถ้ามี)">
+          <button class="btn btn-outline-primary" type="button" data-apply-coupon>ใช้คูปอง</button>
+        </div>
+        <div class="coupon-feedback mt-2 mb-3" data-coupon-feedback role="status" aria-live="polite">ระบบจะแสดงเงื่อนไขและส่วนลดก่อนยืนยันออเดอร์</div>
         <textarea class="form-control" name="customer_note" placeholder="ข้อความถึงร้าน เช่น ฝากไว้กับบ้านข้าง ๆ"></textarea>
       </section>
       <section class="pt-4">
-        <div class="checkout-summary"><div><span>ราคาสินค้า</span><strong data-checkout-subtotal></strong></div><div><span>ค่าจัดส่ง</span><strong data-checkout-fee></strong></div><div class="total"><span>ยอดชำระ</span><strong data-cart-total></strong></div></div>
+        <div class="checkout-summary"><div><span>ราคาสินค้า</span><strong data-checkout-subtotal></strong></div><div data-checkout-discount-row hidden><span>ส่วนลดคูปอง</span><strong class="text-success" data-checkout-discount></strong></div><div><span>ค่าจัดส่ง</span><strong data-checkout-fee></strong></div><div class="total"><span>ยอดชำระ</span><strong data-cart-total></strong></div></div>
         <button class="btn btn-primary btn-lg w-100 mt-3" type="submit">ยืนยันคำสั่งซื้ออย่างปลอดภัย</button>
         <p class="text-center text-secondary small mt-3 mb-0">ราคากับสต็อกจะถูกตรวจอีกครั้งในฐานข้อมูล</p>
       </section>

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'freshmart-admin-shell-v7.0.0';
+const CACHE_VERSION = 'freshmart-admin-shell-v8.0.0';
 const APP_SHELL = [
   './',
   './index.html',

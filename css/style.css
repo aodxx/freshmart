@@ -575,6 +575,32 @@ textarea.form-control { min-height: 108px; }
 .swal2-popup { border-radius: 26px !important; font-family: var(--fm-font) !important; }
 .swal2-confirm { border-radius: 13px !important; background: var(--fm-sky-600) !important; }
 .spinner-border { color: var(--fm-sky-600) !important; }
+.coupon-feedback {
+  min-height: 1.35rem;
+  color: var(--fm-ink-soft);
+  font-size: .86rem;
+  line-height: 1.45;
+}
+.coupon-feedback.is-checking { color: var(--fm-sky-700); }
+.coupon-feedback.is-success { color: #14805e; font-weight: 650; }
+.coupon-feedback.is-error { color: #b42335; font-weight: 650; }
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--fm-ink-soft);
+  background: var(--fm-sky-50);
+  font-size: .78rem;
+  font-weight: 700;
+}
+.live-status::before { width: 8px; height: 8px; border-radius: 50%; background: #9aa9b2; content: ''; }
+.live-status.is-live { color: #087154; background: #e8f8f1; }
+.live-status.is-live::before { background: #16a474; box-shadow: 0 0 0 4px rgba(22,164,116,.13); }
+.live-status.is-reconnecting { color: #9a6511; background: #fff7df; }
+.live-status.is-reconnecting::before { background: #e8a322; }
 
 @media (min-width: 768px) {
   .search-dock { grid-template-columns: 1fr 260px; margin-inline: 34px; }
