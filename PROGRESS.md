@@ -4,8 +4,8 @@
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
 > อัปเดตล่าสุด: 4 สิงหาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–7 ปิดแล้ว; Phase 8 Realtime Orders + Coupon UX พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบจริง**
-> จุดอ้างอิง GitHub: `main@3cde244fcba2d4f32c5cf8ac461cbdb5d3f7b44b`
+> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–8 ปิดแล้ว; Phase 9 Customer Saved Addresses พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบจริง**
+> จุดอ้างอิง GitHub: `main@99b8ee0e0b0c49c55b57ee469b373be9e05c06ff`
 
 ---
 
@@ -15,13 +15,13 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `3cde244fcba2d4f32c5cf8ac461cbdb5d3f7b44b` จาก PR #14 (Phase 7) |
-| Branch งานปัจจุบัน | `agent/phase-8-realtime-orders-coupon-ux` — Realtime Order Status และแก้ข้อความ/ตรวจเงื่อนไขคูปองก่อนสั่งซื้อ |
-| GitHub Pages | Phase 1–7 อยู่ใน `main`; หน้า Phase 8 รอ Merge |
-| Supabase Backend | Migration `realtime_orders_coupon_preview` และ `liff-api` v7 Deploy แล้ว; Project `ACTIVE_HEALTHY` |
+| GitHub `main` | Merge commit ล่าสุด `99b8ee0e0b0c49c55b57ee469b373be9e05c06ff` จาก PR #15 (Phase 8) |
+| Branch งานปัจจุบัน | `agent/phase-9-customer-addresses` — ลูกค้าเพิ่ม แก้ไข ลบ ตั้งที่อยู่หลัก และบันทึก GPS |
+| GitHub Pages | Phase 1–8 อยู่ใน `main`; หน้า Phase 9 รอ Merge |
+| Supabase Backend | Migration `customer_address_management`, `customer_address_management_tuning` และ `liff-api` v8 Deploy แล้ว; Project `ACTIVE_HEALTHY` |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
-| งานแรกที่ควรทำ | Merge Draft PR Phase 8 แล้วทดสอบ `WELCOME10` ที่ยอดต่ำกว่า/เท่ากับ/สูงกว่า 200 บาท และเปิดหน้าออเดอร์ลูกค้าคู่กับ Admin เพื่อตรวจสถานะสด |
+| งานแรกที่ควรทำ | Merge Draft PR Phase 9 แล้วทดสอบเพิ่ม แก้ไข ตั้งที่อยู่หลัก ลบ และเลือกใช้ใน Checkout ผ่าน LINE LIFF |
 
 ### ข้อกำหนดที่ห้ามเปลี่ยนโดยไม่ทบทวน PRD
 
@@ -78,7 +78,7 @@
 
 | โมดูล | สถานะ | รายละเอียดล่าสุด | งานที่ยังเหลือ |
 |---|---:|---|---|
-| GitHub Pages | 🧪 | Phase 1–7 อยู่ใน `main`; Phase 8 รอ Merge | ตรวจ Checkout, Customer Orders และ Admin Orders หลัง Deploy |
+| GitHub Pages | 🧪 | Phase 1–8 อยู่ใน `main`; Phase 9 รอ Merge | ตรวจหน้า Saved Addresses และ Checkout หลัง Deploy |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
 | FreshMart Admin PWA | 🧪 | Phase 8 อัปเดต App Shell v8 และ Admin Orders รับเหตุการณ์สดผ่าน Private Channel | ทดสอบอัปเดต Service Worker และสถานะเชื่อมต่อจริง |
@@ -97,7 +97,7 @@
 | ประวัติราคา | ✅ | บันทึกราคาเก่า ราคาใหม่ ผู้แก้ และเวลา; Phase 5 แสดง Price Audit บน Dashboard | เฝ้าดูการใช้งานจริง |
 | รายการสินค้า | ✅ | Phase 6 ปิดแล้วหลัง Merge PR #13 และทดสอบ Product Detail, Variant/จำนวน และเพิ่มตะกร้าผ่าน LINE LIFF | เฝ้าดูการใช้งานจริง |
 | ตะกร้า | 🧪 | เก็บใน `localStorage` โดยใช้ `variant_id`; รองรับจำนวนสินค้า | ทดสอบการ Sync DB สำหรับผู้ใช้ Supabase Auth |
-| Checkout | 🧪 | ตรวจราคา/สต็อกในฐานข้อมูล พร้อมที่อยู่/GPS; Phase 8 ตรวจคูปองก่อนสั่งซื้อและแปล `MIN_ORDER_NOT_MET` เป็นข้อความไทยพร้อมยอดที่ขาด | ทดสอบ `WELCOME10` รอบขั้นต่ำ 200 บาทผ่าน LINE LIFF |
+| Checkout | 🧪 | ตรวจราคา/สต็อกในฐานข้อมูล พร้อมที่อยู่/GPS; Phase 8 แก้ Coupon Preview; Phase 9 เชื่อมหน้า Saved Addresses และเลือกค่าเริ่มต้นอัตโนมัติ | ทดสอบเลือกที่อยู่หลัก/ที่อยู่อื่น/ที่อยู่ใหม่ผ่าน LINE LIFF |
 | การรับสินค้า | 🧪 | รองรับจัดส่งและรับเองหน้าร้าน | เพิ่มช่วงเวลานัดรับที่ปิด Slot เต็มได้ |
 | เงินสด | 🧪 | แสดง Popup เตรียมเงินตามยอดเมื่อเลือกจัดส่ง | ทดสอบข้อความและยอดรวมค่าจัดส่ง |
 | โอนธนาคาร | 🧪 | ข้อมูลบัญชีตั้งค่าใน `store_settings` พร้อมปุ่มคัดลอก | เพิ่ม QR/โลโก้ธนาคารหากต้องการ |
@@ -107,12 +107,12 @@
 | ประวัติคำสั่งซื้อ | 🧪 | ลูกค้าดูออเดอร์ ยอดค้างชำระ ยอดคงเหลือ และประวัติรับชำระของตนผ่าน LIFF API | ทดสอบกับรายการค้างชำระจริง |
 | Admin Orders | ✅ | Phase 2 ปิดแล้ว: ตรวจสลิป สถานะ จัดส่ง Timeline คืนสต็อก และ LINE แจ้งลูกค้า | เฝ้าดูการใช้งานจริง |
 | Dashboard | ✅ | Phase 5 ปิดแล้วหลัง Merge PR #12 และทดสอบยอดวันนี้ กราฟ ช่องทางขาย และสินค้าขายดีด้วยรายการ POS จริง | เฝ้าดูการใช้งานจริง |
-| สมาชิก/ลูกค้า | 🧪 | PR #6 อยู่ใน `main`; Customer Center แสดงประวัติซื้อ ที่อยู่ GPS ปุ่มนำทาง บัญชีค้างชำระ และรับชำระบางส่วน | ทดสอบข้อมูลจริงบนมือถือและสร้างหนี้ทดสอบที่ควบคุมได้ 1 รายการ |
+| สมาชิก/ลูกค้า | 🧪 | Phase 9 เพิ่มหน้า Saved Addresses ให้ลูกค้า LINE เพิ่ม แก้ไข ลบ ตั้งค่าเริ่มต้น และบันทึก GPS; Admin Customer Center เดิมยังแสดงประวัติ/ยอดค้าง | ทดสอบหน้าใหม่บน LINE Android/iOS และสร้างหนี้ทดสอบที่ควบคุมได้ 1 รายการ |
 | คูปอง | 🧪 | Phase 7 ปิดแล้ว; Phase 8 เพิ่ม Preview แบบ Server-authoritative โดยไม่เพิ่ม `used_count` และแสดงเงื่อนไขก่อนยืนยัน | ทดสอบยอดต่ำกว่า/เท่ากับ/สูงกว่า 200 บาท |
 | รีวิว | ✅ | Phase 6 ปิดแล้วหลัง Merge PR #13 และทดสอบเพิ่ม แก้ไข ลบ พร้อมคะแนนเฉลี่ยจากออเดอร์ `completed` ผ่าน LINE LIFF | เฝ้าดูการใช้งานจริง |
 | LINE แจ้งเตือน Admin | 🧪 | Edge Function รองรับส่งส่วนตัวและกลุ่มผ่าน Messaging API | ทดสอบ Token/User ID/Group ID จริงทุกปลายทาง |
 | LINE แจ้งกลับลูกค้า | 🚧 | มีฐานข้อมูล LINE User ID | เพิ่ม Push Message เมื่อตรวจเงิน/จัดส่ง/เสร็จสิ้น |
-| Realtime Orders | 🧪 | Phase 8 ใช้ Database Broadcast: Customer topic แบบ token สุ่มและ Admin Private Channel ที่ตรวจ RLS; มี Polling สำรอง 45 วินาที | Merge แล้วทดสอบสองอุปกรณ์/สองหน้าจอจริง |
+| Realtime Orders | ✅ | Phase 8 ปิดแล้วหลัง Merge PR #15 และทดสอบ Database Broadcast, Customer topic แบบ token สุ่ม, Admin Private Channel และ Polling สำรอง | เฝ้าดูการใช้งานจริง |
 
 ---
 
@@ -222,6 +222,28 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 4 สิงหาคม 2026 — Phase 9 Customer Saved Address Management
+
+- ยืนยันปิด Phase 8 หลัง Merge PR #15 และทดสอบ Coupon Preview กับ Realtime Orders สำเร็จ
+- เพิ่มหน้า `addresses.html` แบบ Mobile-first ให้ลูกค้าเพิ่ม แก้ไข ลบ และตั้งที่อยู่หลัก
+- รองรับ GPS และลิงก์นำทาง พร้อมเชื่อมหน้า Checkout และประวัติคำสั่งซื้อ
+- เพิ่ม Transactional RPC สำหรับ Upsert, Set Default และ Delete โดยล็อกตามลูกค้าและจำกัดสูงสุด 20 ที่อยู่
+- เมื่อลบที่อยู่หลัก ระบบเลื่อนรายการที่เหลือขึ้นมาแทน; ออเดอร์เก่ายังคง Snapshot เดิม
+- ถอนสิทธิ์ตารางที่กว้างเกินจำเป็น และให้คำสั่งเขียนทำงานผ่าน `service_role` หลัง Edge Function ตรวจ LINE เท่านั้น
+- Deploy Migration `customer_address_management`, `customer_address_management_tuning` และ `liff-api` v8 บน Supabase Production
+- แก้กรณีสลับที่อยู่หลักชน Partial Unique Index ด้วยการล้างค่าเดิมก่อนตั้งค่าใหม่ใน Transaction เดียว
+- PostgreSQL Dry Run, Production Smoke Test, ACL/RPC Check และ Automated Tests ผ่าน; ข้อมูลทดสอบถูก Rollback
+
+### 4 สิงหาคม 2026 — Phase 8 Realtime Orders & Coupon Preview
+
+- ยืนยันปิด Phase 7 หลัง Merge PR #14 และทดสอบ Admin Coupons สำเร็จ
+- แปล `MIN_ORDER_NOT_MET` เป็นข้อความไทย พร้อมขั้นต่ำและยอดที่ต้องซื้อเพิ่ม
+- เพิ่ม Coupon Preview จากฐานข้อมูลก่อนยืนยันออเดอร์ โดยไม่เพิ่ม `used_count`
+- เพิ่ม Database Broadcast สำหรับลูกค้าผ่าน Topic Token แบบสุ่ม และ Admin ผ่าน Private Channel ที่ตรวจ RLS
+- Payload Realtime ไม่ส่งชื่อ เบอร์โทร ที่อยู่ ยอดเงิน หรือรหัสลูกค้า และมี Polling สำรองทุก 45 วินาที
+- Deploy Migration `realtime_orders_coupon_preview` และ `liff-api` v7 บน Supabase Production
+- WebSocket Smoke Test, Admin/Non-admin RLS Test และ Automated Tests ผ่าน
 
 ### 4 สิงหาคม 2026 — Phase 7 Admin Coupon Management
 
@@ -419,6 +441,7 @@ erDiagram
 | 27 ก.ค. 2026 | ตะกร้าเก่าไม่รองรับ Variant | Local Cart รุ่นแรกเก็บเฉพาะ `product_id` | ✅ เปลี่ยน Storage Key เป็น `freshmart-cart-v2`; ลูกค้าต้องเพิ่มสินค้าใหม่ |
 | 27 ก.ค. 2026 | Public bucket เปิดให้ List Files | RLS SELECT กว้างเกินจำเป็น | ✅ จำกัดการ List ให้ Admin; Public URL ยังใช้งานได้ |
 | 27 ก.ค. 2026 | LINE Notify แบบเดิมใช้งานไม่ได้ | LINE Notify ยุติบริการ | ✅ เปลี่ยนเป็น LINE Messaging API |
+| 4 ส.ค. 2026 | สลับที่อยู่หลักแล้วชน `customer_one_default_address_idx` | PostgreSQL อาจอัปเดตแถวใหม่เป็น `true` ก่อนล้างค่าเดิมในคำสั่งเดียว | ✅ Phase 9 Tuning แยกเป็นล้างค่าเดิมและตั้งค่าใหม่ภายใน Transaction เดียว |
 
 ### แบบฟอร์มบันทึกบั๊กใหม่
 
@@ -485,7 +508,7 @@ Commit หรือ PR ที่แก้:
 - [x] Admin Coupons
 - [x] QR PromptPay ตามยอดสำหรับ Storefront POS
 - [x] Realtime Order Status
-- [ ] UI ให้ลูกค้าแก้ไข/ลบ/ตั้งที่อยู่เริ่มต้น
+- [x] UI ให้ลูกค้าแก้ไข/ลบ/ตั้งที่อยู่เริ่มต้น
 - [ ] หมายเหตุและป้ายกำกับลูกค้า เช่น ลูกค้าประจำ, VIP, ร้านอาหาร
 - [ ] วิเคราะห์สินค้าที่ลูกค้าซื้อบ่อยและวันที่เหมาะสำหรับเสนอขายซ้ำ
 - [ ] ระบบคะแนนสะสมหรือส่วนลดเฉพาะลูกค้า
@@ -502,6 +525,7 @@ Commit หรือ PR ที่แก้:
 | Product Detail/รีวิว | `product-detail.html`, `js/product-detail.js`, `css/product-detail.css` |
 | ตะกร้า | `cart.html`, `js/cart.js`, `js/cart-page.js` |
 | Checkout และ GPS | `checkout.html`, `js/checkout.js` |
+| จัดการที่อยู่ลูกค้า | `addresses.html`, `js/addresses.js`, `css/style.css` |
 | ประวัติออเดอร์ลูกค้า/ยอดค้าง | `orders.html`, `js/orders.js` |
 | Admin สินค้า/บาร์โค้ด | `admin/products.html`, `js/admin-products.js`, `js/barcode.js` |
 | Admin ขายหน้าร้าน POS | `admin/pos.html`, `js/admin-pos.js`, `js/promptpay.js`, `css/admin-pos.css` |
@@ -520,6 +544,7 @@ Commit หรือ PR ที่แก้:
 | Dashboard tests | `tests/dashboard.test.mjs` |
 | Product Detail/Review tests | `tests/product-detail-reviews.test.mjs` |
 | Admin Coupon tests | `tests/admin-coupons.test.mjs` |
+| Customer Address tests | `tests/customer-addresses.test.mjs` |
 
 ### หลักการ Deploy
 

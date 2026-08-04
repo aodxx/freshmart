@@ -216,30 +216,42 @@ Deno.serve(async (req: Request) => {
       if (!recipientName || !/^0\d{8,9}$/.test(phone) || !addressText) {
         throw new Error("INVALID_ADDRESS");
       }
-      if (address.is_default) {
-        await admin.from("customer_addresses").update({ is_default: false })
-          .eq("customer_id", customer.id);
-      }
-      const row = {
-        customer_id: customer.id,
-        label: String(address.label || "บ้าน").slice(0, 40),
-        recipient_name: recipientName,
-        phone,
-        address: addressText,
-        latitude: coordinate(address.latitude, -90, 90),
-        longitude: coordinate(address.longitude, -180, 180),
-        is_default: Boolean(address.is_default),
-      };
-      if ((row.latitude === null) !== (row.longitude === null)) {
+      const latitude = coordinate(address.latitude, -90, 90);
+      const longitude = coordinate(address.longitude, -180, 180);
+      if ((latitude === null) !== (longitude === null)) {
         throw new Error("INVALID_GPS_PAIR");
       }
-      const query = address.id
-        ? admin.from("customer_addresses").update(row)
-            .eq("id", address.id).eq("customer_id", customer.id)
-        : admin.from("customer_addresses").insert(row);
-      const { data, error } = await query.select("*").single();
+      const { data, error } = await admin.rpc("upsert_customer_address", {
+        p_customer_id: customer.id,
+        p_address_id: address.id || null,
+        p_label: String(address.label || "บ้าน").slice(0, 40),
+        p_recipient_name: recipientName,
+        p_phone: phone,
+        p_address: addressText,
+        p_latitude: latitude,
+        p_longitude: longitude,
+        p_is_default: Boolean(address.is_default),
+      });
       if (error) throw error;
       return json({ success: true, address: data });
+    }
+
+    if (action === "set_default_address") {
+      const { data, error } = await admin.rpc("set_default_customer_address", {
+        p_customer_id: customer.id,
+        p_address_id: String(body.addressId || ""),
+      });
+      if (error) throw error;
+      return json({ success: true, address: data });
+    }
+
+    if (action === "delete_address") {
+      const { data, error } = await admin.rpc("delete_customer_address", {
+        p_customer_id: customer.id,
+        p_address_id: String(body.addressId || ""),
+      });
+      if (error) throw error;
+      return json({ success: true, ...data });
     }
 
     if (action === "place_order") {

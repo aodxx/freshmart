@@ -38,6 +38,87 @@
   --fm-ease: cubic-bezier(.2, .8, .2, 1);
 }
 
+/* Phase 9 — customer saved-address management */
+.address-page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.address-page-heading h1,
+.address-page-heading p { margin-bottom: .25rem; }
+
+.address-editor {
+  margin-bottom: 1.25rem;
+  padding: clamp(1rem, 4vw, 1.5rem);
+  border: 1px solid color-mix(in srgb, var(--fm-sky-600) 24%, transparent);
+}
+
+.address-editor__head,
+.saved-address-card__head,
+.saved-address-card__actions,
+.saved-address-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.address-editor__head { margin-bottom: 1rem; }
+.address-editor__head small { color: var(--fm-sky-600); font-weight: 700; }
+.address-editor__head h2 { margin: .15rem 0 0; font-size: 1.25rem; }
+.address-editor__actions { display: flex; justify-content: flex-end; gap: .65rem; margin-top: 1.25rem; }
+
+.address-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0 .75rem;
+  margin-bottom: 1rem;
+  padding: .85rem 1rem;
+  border-radius: var(--fm-radius-md);
+  background: linear-gradient(135deg, #eaf7ff, #f4fbff);
+  color: var(--fm-ink);
+}
+
+.address-summary strong { grid-row: 1 / 3; font-size: 2rem; color: var(--fm-sky-600); }
+.address-summary span { font-weight: 700; }
+.address-summary small { color: var(--fm-ink-soft); }
+.address-list { display: grid; gap: .9rem; padding-bottom: 6rem; }
+
+.saved-address-card {
+  display: grid;
+  gap: .35rem;
+  padding: 1rem;
+  border: 1px solid var(--fm-line);
+  border-radius: var(--fm-radius-lg);
+  background: var(--fm-surface);
+  box-shadow: var(--fm-shadow-sm);
+}
+
+.saved-address-card.is-default {
+  border-color: color-mix(in srgb, var(--fm-sky-600) 42%, var(--fm-line));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--fm-sky-600) 10%, transparent), var(--fm-shadow-sm);
+}
+
+.saved-address-card > span,
+.saved-address-card__meta { color: var(--fm-ink-soft); font-size: .9rem; }
+.saved-address-card p { margin: .25rem 0; white-space: pre-line; }
+.saved-address-card__meta { padding-top: .4rem; border-top: 1px dashed var(--fm-line); }
+.saved-address-card__meta a { font-weight: 700; }
+.saved-address-card__actions { margin-top: .35rem; align-items: flex-end; }
+.saved-address-card__actions > span { color: var(--fm-success); font-size: .85rem; font-weight: 700; }
+.address-label { font-size: 1.05rem; font-weight: 800; }
+.address-default-badge { margin-left: .5rem; padding: .2rem .5rem; border-radius: 999px; background: #e7f8ef; color: #087b47; font-size: .72rem; font-weight: 800; }
+
+@media (max-width: 575.98px) {
+  .address-page-heading { align-items: stretch; flex-direction: column; }
+  .address-page-heading > .btn { width: 100%; }
+  .saved-address-card__actions { align-items: stretch; flex-wrap: wrap; }
+  .saved-address-card__actions > span { flex: 1 0 100%; }
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
