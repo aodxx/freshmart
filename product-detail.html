@@ -1,1 +1,93 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=index.html"><title>สินค้า | FreshMart</title>
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#087db3">
+  <title>รายละเอียดสินค้า | FreshMart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/product-detail.css" rel="stylesheet">
+</head>
+<body class="customer-app product-detail-app">
+  <header class="app-header">
+    <div class="container app-header__inner">
+      <a class="brand" href="index.html" aria-label="กลับหน้าร้าน">
+        <span class="brand__mark">FM</span>
+        <span class="brand__name">ร้านชำเจ๊ดี<small class="brand__caption">FreshMart</small></span>
+      </a>
+      <div class="profile-pill">
+        <img data-line-picture alt="รูปโปรไฟล์ LINE">
+        <span data-line-name>กำลังโหลด...</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="product-detail-shell">
+    <div class="container">
+      <a class="back-link product-back" href="index.html">← กลับไปเลือกสินค้า</a>
+
+      <div data-product-loading class="product-detail-loading">
+        <div class="spinner-border" aria-hidden="true"></div>
+        <p>กำลังหยิบสินค้าจากชั้น...</p>
+      </div>
+
+      <section data-product-detail class="product-detail-card d-none" aria-labelledby="product-name">
+        <div class="product-gallery">
+          <div class="product-detail-image" data-product-image></div>
+          <span class="verified-shop-badge">✓ ข้อมูลและราคาจากร้าน</span>
+        </div>
+        <div class="product-detail-info">
+          <div class="product-breadcrumb" data-product-category></div>
+          <h1 id="product-name" data-product-name></h1>
+          <a href="#reviews" class="product-rating-link" data-product-rating></a>
+          <p class="product-description" data-product-description></p>
+
+          <div class="variant-panel">
+            <div class="detail-label-row"><strong>เลือกขนาด</strong><span data-stock-summary></span></div>
+            <div class="variant-options" data-variant-options></div>
+          </div>
+
+          <div class="purchase-panel">
+            <div>
+              <small>ราคาต่อหน่วย</small>
+              <strong data-selected-price></strong>
+            </div>
+            <div class="quantity-stepper" aria-label="เลือกจำนวนสินค้า">
+              <button type="button" data-quantity-minus aria-label="ลดจำนวน">−</button>
+              <input type="number" data-quantity value="1" min="1" inputmode="numeric" aria-label="จำนวน">
+              <button type="button" data-quantity-plus aria-label="เพิ่มจำนวน">+</button>
+            </div>
+          </div>
+          <button class="btn btn-primary detail-add-button" type="button" data-add-detail>เพิ่มลงตะกร้า</button>
+        </div>
+      </section>
+
+      <section id="reviews" class="reviews-section" aria-labelledby="reviews-heading">
+        <div class="section-heading reviews-heading">
+          <div><h2 id="reviews-heading" class="h4">เสียงจากลูกค้าที่ซื้อจริง</h2><p>รีวิวได้หลังออเดอร์เสร็จสมบูรณ์</p></div>
+        </div>
+        <div class="reviews-layout">
+          <aside class="rating-summary fm-surface" data-rating-summary></aside>
+          <div class="review-workspace">
+            <div class="review-editor fm-surface" data-review-editor>
+              <div class="review-editor__loading"><span class="spinner-border spinner-border-sm"></span> กำลังตรวจสิทธิ์รีวิว...</div>
+            </div>
+            <div class="review-list" data-review-list></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <nav class="bottom-nav" aria-label="เมนูหลัก">
+    <a class="bottom-nav__item is-active" href="index.html"><span class="bottom-nav__icon">⌂</span><span>หน้าร้าน</span></a>
+    <a class="bottom-nav__item" href="orders.html"><span class="bottom-nav__icon">▤</span><span>คำสั่งซื้อ</span></a>
+    <a class="bottom-nav__item" href="cart.html"><span class="bottom-nav__icon">🛒</span><span>ตะกร้า</span><span class="cart-badge" data-cart-count>0</span></a>
+  </nav>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="module" src="js/product-detail.js"></script>
+</body>
+</html>

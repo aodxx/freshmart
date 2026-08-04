@@ -9,6 +9,7 @@
 - [จัดการสินค้า](https://aodxx.github.io/freshmart/admin/products.html)
 - [บริหารสต็อก](https://aodxx.github.io/freshmart/admin/inventory.html)
 - [เปิดผ่าน LINE LIFF](https://liff.line.me/2010025658-kBKgsnzH)
+
 ## URLs
 
 - Supabase project: `jilaasxicogktwrjnkmu`
@@ -72,6 +73,18 @@ Frontend ไม่มีสิทธิ์แก้จำนวนคงเห�
 การปิดการขายเรียก `admin_complete_pos_sale()` ซึ่งสร้าง Order, Payment และ Order Items
 พร้อมตัด FEFO/Stock Ledger ใน Transaction เดียว ระบบไม่เชื่อราคาหรือยอดรวมจากเบราว์เซอร์
 และอนุญาตเฉพาะบัญชี Admin
+
+## Product Detail & Verified Reviews
+
+หน้า `product-detail.html?id={product_id}` แสดงข้อมูลสินค้าแบบ Mobile-first:
+
+- รูป แบรนด์ หมวด รายละเอียด ราคา และสต็อกล่าสุด
+- เลือก Product Variant และจำนวนก่อนเพิ่มลงตะกร้า
+- คะแนนเฉลี่ย การกระจายดาว และรีวิวจากผู้ซื้อจริง
+- ลูกค้า LINE LIFF เพิ่ม แก้ไข หรือลบรีวิวของตนได้เมื่อออเดอร์สินค้านั้นเป็น `completed`
+
+หน้าเว็บอ่านรีวิวผ่าน View ที่ไม่เปิดเผยรหัสลูกค้า ส่วนคำสั่งเขียนรีวิวต้องผ่าน `liff-api`
+ซึ่งตรวจ LINE Access Token แล้วเรียก RPC ที่ให้สิทธิ์เฉพาะ `service_role`
 
 ## ตั้งผู้ดูแลระบบคนแรก
 

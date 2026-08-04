@@ -10,23 +10,24 @@ const saveLocal = cart => {
   window.dispatchEvent(new CustomEvent('freshmart:cart', { detail: cart }));
 };
 
-export const addToCart = (product, variant) => {
+export const addToCart = (product, variant, quantity = 1) => {
   if (!variant || variant.stock < 1) return toast('warning', 'สินค้าขนาดนี้หมดชั่วคราว');
+  const amount = Math.max(1, Math.min(Number(quantity) || 1, variant.stock));
   const cart = getCart();
   const current = cart.find(item => item.variant_id === variant.id);
-  if (current) current.quantity = Math.min(current.quantity + 1, variant.stock);
+  if (current) current.quantity = Math.min(current.quantity + amount, variant.stock);
   else cart.push({
     product_id: product.id,
     variant_id: variant.id,
     name: product.name,
     variant_name: variant.name,
     price: Number(variant.price),
-    quantity: 1,
+    quantity: amount,
     stock: variant.stock
   });
   saveLocal(cart);
   syncCart().catch(console.error);
-  toast('success', 'เพิ่มลงตะกร้าแล้ว');
+  toast('success', `เพิ่ม ${amount} ชิ้นลงตะกร้าแล้ว`);
 };
 
 export const updateQuantity = (variantId, quantity) => {
