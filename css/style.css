@@ -299,7 +299,8 @@ textarea.form-control { min-height: 108px; }
 .product-card .card-body { padding: 16px; }
 .product-category { color: var(--fm-sky-600); font-size: .72rem; font-weight: 700; letter-spacing: .04em; }
 .product-title { min-height: 2.65em; margin: 4px 0 2px; font-size: 1rem; font-weight: 700; line-height: 1.35; }
-.rating-line { color: var(--fm-warning); font-size: .73rem; }
+.product-title a { color: inherit; text-decoration: none; }
+.rating-line { color: var(--fm-warning); font-size: .73rem; text-decoration: none; }
 .price-label { color: var(--fm-coral); font-family: var(--fm-display); font-size: 1rem; font-weight: 800; }
 .variant-select { min-height: 40px; border-radius: 11px; font-size: .8rem; }
 .add-product-btn { display: grid; width: 42px; height: 42px; min-height: 42px; padding: 0; place-items: center; border-radius: 14px; font-size: 1.25rem; }

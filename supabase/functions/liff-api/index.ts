@@ -31,6 +31,14 @@ function coordinate(value: unknown, min: number, max: number) {
   return parsed;
 }
 
+function productId(value: unknown) {
+  const id = String(value || "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    throw new Error("INVALID_PRODUCT_ID");
+  }
+  return id;
+}
+
 async function verifyLineUser(accessToken: string) {
   if (!accessToken || accessToken.length < 20) throw new Error("LINE_LOGIN_REQUIRED");
 
@@ -153,6 +161,41 @@ Deno.serve(async (req: Request) => {
         addresses: addresses || [],
         latest_delivery_address: latestDelivery || null,
       });
+    }
+
+    if (action === "review_context") {
+      const { data, error } = await admin.rpc("customer_review_context", {
+        p_customer_id: customer.id,
+        p_product_id: productId(body.productId),
+      });
+      if (error) throw error;
+      return json({ success: true, context: data });
+    }
+
+    if (action === "upsert_review") {
+      const rating = Number(body.rating);
+      const comment = String(body.comment || "").trim();
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+        throw new Error("INVALID_RATING");
+      }
+      if (comment.length > 1000) throw new Error("COMMENT_TOO_LONG");
+      const { data, error } = await admin.rpc("upsert_customer_review", {
+        p_customer_id: customer.id,
+        p_product_id: productId(body.productId),
+        p_rating: rating,
+        p_comment: comment,
+      });
+      if (error) throw error;
+      return json({ success: true, review: data });
+    }
+
+    if (action === "delete_review") {
+      const { data, error } = await admin.rpc("delete_customer_review", {
+        p_customer_id: customer.id,
+        p_product_id: productId(body.productId),
+      });
+      if (error) throw error;
+      return json({ success: true, deleted: Boolean(data) });
     }
 
     if (action === "update_phone") {

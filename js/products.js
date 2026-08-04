@@ -18,11 +18,11 @@ const render = () => {
   grid.innerHTML = rows.length ? rows.map(p => `
     <div class="col-6 col-lg-3">
       <article class="card product-card h-100 border-0">
-        <div class="product-image">${p.image_path || p.image_url ? `<img src="${productImageUrl(p.image_path || p.image_url)}" alt="${escapeHtml(p.name)}">` : '<span>🛒</span>'}</div>
+        <a class="product-image" href="product-detail.html?id=${encodeURIComponent(p.id)}" aria-label="ดูรายละเอียด ${escapeHtml(p.name)}">${p.image_path || p.image_url ? `<img src="${productImageUrl(p.image_path || p.image_url)}" alt="${escapeHtml(p.name)}">` : '<span>🛒</span>'}</a>
         <div class="card-body d-flex flex-column">
           <small class="product-category">${escapeHtml(p.category_name || 'สินค้า')}</small>
-          <h2 class="product-title">${escapeHtml(p.name)}</h2>
-          <div class="rating-line">★ ${p.average_rating || '0.00'} · ${p.review_count || 0} รีวิว</div>
+          <h2 class="product-title"><a href="product-detail.html?id=${encodeURIComponent(p.id)}">${escapeHtml(p.name)}</a></h2>
+          <a class="rating-line" href="product-detail.html?id=${encodeURIComponent(p.id)}#reviews">★ ${p.average_rating || '0.00'} · ${p.review_count || 0} รีวิว</a>
           <div class="mt-auto pt-3">
             <select class="form-select variant-select mb-2" data-variant-select="${p.id}" aria-label="เลือกขนาด ${escapeHtml(p.name)}">
               ${(p.variants || []).map(v => `<option value="${v.id}" ${v.stock < 1 ? 'disabled' : ''}>
