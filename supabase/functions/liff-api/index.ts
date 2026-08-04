@@ -277,6 +277,17 @@ Deno.serve(async (req: Request) => {
       return json({ success: true, order });
     }
 
+    if (action === "validate_coupon") {
+      const couponCode = String(body.coupon_code || "").trim();
+      const items = Array.isArray(body.items) ? body.items : [];
+      const { data: coupon, error } = await admin.rpc("preview_liff_coupon", {
+        p_items: items,
+        p_coupon_code: couponCode,
+      });
+      if (error) throw error;
+      return json({ success: true, coupon });
+    }
+
     if (action === "list_orders") {
       const { data, error } = await admin.from("orders")
         .select(

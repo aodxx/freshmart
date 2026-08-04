@@ -14,8 +14,14 @@ const pickupAtField = document.querySelector('[name="pickup_at"]');
 const gpsButton = document.querySelector('[data-use-gps]');
 const gpsStatus = document.querySelector('[data-gps-status]');
 const gpsMap = document.querySelector('[data-gps-map]');
+const couponInput = document.querySelector('[name="coupon_code"]');
+const couponButton = document.querySelector('[data-apply-coupon]');
+const couponFeedback = document.querySelector('[data-coupon-feedback]');
+const couponDiscountRow = document.querySelector('[data-checkout-discount-row]');
+const couponDiscountValue = document.querySelector('[data-checkout-discount]');
 
 let liffState;
+let couponState = { code: '', valid: false, discount: 0 };
 let deliveryState = {
   addressId: null,
   latitude: null,
@@ -141,9 +147,72 @@ function refreshCheckout() {
   const settings = liffState?.settings;
   const fee = fulfillment === 'delivery' && settings && subtotal < Number(settings.free_delivery_minimum)
     ? Number(settings.delivery_fee) : 0;
+  const discount = couponState.valid ? Number(couponState.discount || 0) : 0;
   document.querySelector('[data-checkout-subtotal]').textContent = money(subtotal);
+  couponDiscountRow.hidden = discount <= 0;
+  couponDiscountValue.textContent = `−${money(discount)}`;
   document.querySelector('[data-checkout-fee]').textContent = fee ? money(fee) : 'ฟรี';
-  document.querySelector('[data-cart-total]').textContent = money(subtotal + fee);
+  document.querySelector('[data-cart-total]').textContent = money(Math.max(subtotal - discount, 0) + fee);
+}
+
+function couponErrorMessage(coupon) {
+  const messages = {
+    COUPON_REQUIRED: 'กรุณากรอกรหัสคูปอง',
+    COUPON_NOT_FOUND: 'ไม่พบรหัสคูปองนี้ กรุณาตรวจตัวสะกดอีกครั้ง',
+    COUPON_INACTIVE: 'คูปองนี้ถูกปิดใช้งานแล้ว',
+    COUPON_NOT_STARTED: 'คูปองนี้ยังไม่ถึงเวลาเริ่มใช้งาน',
+    COUPON_EXPIRED: 'คูปองนี้หมดอายุแล้ว',
+    COUPON_LIMIT_REACHED: 'คูปองนี้ถูกใช้ครบจำนวนสิทธิ์แล้ว',
+    INVALID_CART: 'ตะกร้าสินค้าไม่ถูกต้อง กรุณากลับไปตรวจตะกร้า',
+    CART_ITEM_UNAVAILABLE: 'มีสินค้าในตะกร้าที่ไม่พร้อมขาย กรุณาตรวจตะกร้าอีกครั้ง'
+  };
+  if (coupon?.error_code === 'MIN_ORDER_NOT_MET') {
+    return `คูปอง ${coupon.code} ใช้ได้เมื่อยอดสินค้าอย่างน้อย ${money(coupon.min_order)} — เพิ่มสินค้าอีก ${money(coupon.missing_amount)}`;
+  }
+  return messages[coupon?.error_code] || 'ไม่สามารถใช้คูปองนี้ได้';
+}
+
+function resetCoupon(message = 'ระบบจะแสดงเงื่อนไขและส่วนลดก่อนยืนยันออเดอร์') {
+  couponState = { code: '', valid: false, discount: 0 };
+  couponFeedback.className = 'coupon-feedback mt-2 mb-3';
+  couponFeedback.textContent = message;
+  refreshCheckout();
+}
+
+async function validateCoupon({ throwOnInvalid = false } = {}) {
+  const code = String(couponInput.value || '').trim().toUpperCase();
+  couponInput.value = code;
+  if (!code) {
+    resetCoupon();
+    return null;
+  }
+
+  couponButton.disabled = true;
+  couponFeedback.className = 'coupon-feedback is-checking mt-2 mb-3';
+  couponFeedback.textContent = 'กำลังตรวจสอบคูปอง...';
+  try {
+    const { coupon } = await liffApi('validate_coupon', {
+      coupon_code: code,
+      items: getCart().map(item => ({ variant_id: item.variant_id, quantity: item.quantity }))
+    });
+    if (!coupon?.valid) {
+      const message = couponErrorMessage(coupon);
+      couponState = { code, valid: false, discount: 0, ...coupon };
+      couponFeedback.className = 'coupon-feedback is-error mt-2 mb-3';
+      couponFeedback.textContent = message;
+      refreshCheckout();
+      if (throwOnInvalid) throw new Error(message);
+      return coupon;
+    }
+
+    couponState = { ...coupon, code, valid: true, discount: Number(coupon.discount || 0) };
+    couponFeedback.className = 'coupon-feedback is-success mt-2 mb-3';
+    couponFeedback.textContent = `ใช้คูปอง ${code} สำเร็จ ลด ${money(couponState.discount)}`;
+    refreshCheckout();
+    return coupon;
+  } finally {
+    couponButton.disabled = false;
+  }
 }
 
 document.querySelectorAll('[data-copy]').forEach(button => {
@@ -156,6 +225,14 @@ document.querySelectorAll('[data-copy]').forEach(button => {
 addressChoice?.addEventListener('change', applyAddressChoice);
 form?.querySelectorAll('[name="fulfillment_method"],[name="payment_method"]')
   .forEach(input => input.addEventListener('change', refreshCheckout));
+couponButton?.addEventListener('click', () => validateCoupon().catch(error => {
+  couponFeedback.className = 'coupon-feedback is-error mt-2 mb-3';
+  couponFeedback.textContent = error.message;
+}));
+couponInput?.addEventListener('input', () => {
+  couponInput.value = couponInput.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+  if (couponState.code !== couponInput.value) resetCoupon('กด “ใช้คูปอง” เพื่อตรวจสอบเงื่อนไขใหม่');
+});
 
 gpsButton?.addEventListener('click', () => {
   if (!navigator.geolocation) return toast('error', 'อุปกรณ์นี้ไม่รองรับ GPS');
@@ -207,6 +284,9 @@ form?.addEventListener('submit', async event => {
     if (['bank_transfer', 'promptpay'].includes(payment) && !slip) {
       throw new Error('กรุณาแนบสลิปการชำระเงิน');
     }
+    if (String(values.coupon_code || '').trim()) {
+      await validateCoupon({ throwOnInvalid: true });
+    }
     const result = await liffApi('place_order', {
       order: {
         items: getCart().map(item => ({ variant_id: item.variant_id, quantity: item.quantity })),
@@ -247,7 +327,15 @@ form?.addEventListener('submit', async event => {
     }
     location.href = 'orders.html';
   } catch (error) {
-    toast('error', error.message);
+    const rawMessage = String(error.message || error);
+    const message = rawMessage.includes('MIN_ORDER_NOT_MET')
+      ? couponErrorMessage({
+          error_code: 'MIN_ORDER_NOT_MET', code: couponInput.value,
+          min_order: couponState.min_order || 0,
+          missing_amount: couponState.missing_amount || 0
+        })
+      : rawMessage;
+    toast('error', message);
   } finally {
     button.disabled = false;
   }

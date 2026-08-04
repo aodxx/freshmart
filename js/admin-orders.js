@@ -23,7 +23,7 @@ const eventLabels = {
   delivery_updated: 'อัปเดตข้อมูลจัดส่ง'
 };
 
-const state = { orders: [], search: '', status: 'all', fulfillment: 'all', selectedId: null };
+const state = { orders: [], search: '', status: 'all', fulfillment: 'all', selectedId: null, loading: false };
 const elements = {
   list: document.querySelector('[data-admin-orders]'),
   loading: document.querySelector('[data-order-loading]'),
@@ -33,9 +33,38 @@ const elements = {
   search: document.querySelector('[data-order-search]'),
   status: document.querySelector('[data-order-status-filter]'),
   fulfillment: document.querySelector('[data-order-fulfillment-filter]'),
-  refresh: document.querySelector('[data-refresh-orders]')
+  refresh: document.querySelector('[data-refresh-orders]'),
+  live: document.querySelector('[data-admin-order-live]')
 };
 const detailModal = new bootstrap.Modal('#orderDetailModal');
+let realtimeChannel = null;
+let realtimeRefreshTimer = null;
+
+function setLiveState(stateName, text) {
+  elements.live.className = `live-status ${stateName} mb-3`;
+  elements.live.textContent = text;
+}
+
+function queueRealtimeRefresh(message) {
+  const event = message?.payload || {};
+  if (event.operation === 'INSERT') toast('info', `มีออเดอร์ใหม่ ${event.order_number || ''}`.trim());
+  clearTimeout(realtimeRefreshTimer);
+  realtimeRefreshTimer = setTimeout(() => load({ reopen: state.selectedId }), 250);
+}
+
+async function subscribeRealtimeOrders() {
+  const { data: { session } } = await supabase.auth.getSession();
+  await supabase.realtime.setAuth(session?.access_token);
+  realtimeChannel = supabase.channel('admin:orders', { config: { private: true } })
+    .on('broadcast', { event: 'order_changed' }, queueRealtimeRefresh)
+    .subscribe((status, error) => {
+      if (status === 'SUBSCRIBED') setLiveState('is-live', 'รับออเดอร์และสถานะแบบสด');
+      if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status)) {
+        console.warn('Admin Realtime:', error?.message || status);
+        setLiveState('is-reconnecting', 'กำลังเชื่อมต่อใหม่ · ยังตรวจทุก 45 วินาที');
+      }
+    });
+}
 
 const thaiDate = value => value ? new Intl.DateTimeFormat('th-TH', {
   dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok'
@@ -343,22 +372,30 @@ async function saveDelivery(event, order) {
 }
 
 async function load({ reopen = null } = {}) {
+  if (state.loading) return;
+  state.loading = true;
   elements.loading.hidden = false;
   elements.refresh.disabled = true;
-  const { data, error } = await supabase.from('orders').select(`
-    *,
-    payments(*),
-    order_items(*),
-    order_events(*),
-    customer_receivables(id,original_amount,paid_amount,balance_amount,status,due_at,note)
-  `).order('created_at', { ascending: false });
-  elements.loading.hidden = true;
-  elements.refresh.disabled = false;
-  if (error) return Swal.fire('โหลดคำสั่งซื้อไม่สำเร็จ', error.message, 'error');
-  state.orders = data || [];
-  updateKpis();
-  render();
-  if (reopen) await openOrder(reopen);
+  try {
+    const { data, error } = await supabase.from('orders').select(`
+      *,
+      payments(*),
+      order_items(*),
+      order_events(*),
+      customer_receivables(id,original_amount,paid_amount,balance_amount,status,due_at,note)
+    `).order('created_at', { ascending: false });
+    if (error) throw error;
+    state.orders = data || [];
+    updateKpis();
+    render();
+    if (reopen && state.orders.some(order => order.id === reopen)) await openOrder(reopen);
+  } catch (error) {
+    await Swal.fire('โหลดคำสั่งซื้อไม่สำเร็จ', error.message, 'error');
+  } finally {
+    elements.loading.hidden = true;
+    elements.refresh.disabled = false;
+    state.loading = false;
+  }
 }
 
 function bindFilters() {
@@ -381,6 +418,15 @@ async function init() {
   if (!user) return;
   bindFilters();
   await load();
+  await subscribeRealtimeOrders();
 }
 
 init();
+setInterval(() => load(), 45000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') load();
+});
+document.querySelector('#orderDetailModal').addEventListener('hidden.bs.modal', () => { state.selectedId = null; });
+window.addEventListener('pagehide', () => {
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+});
