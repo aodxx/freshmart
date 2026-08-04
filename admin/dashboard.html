@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#087db3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Dashboard | FreshMart Admin</title>
+  <link rel="manifest" href="./admin.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/admin-192.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/style.css" rel="stylesheet">
+  <link href="../css/admin-dashboard.css" rel="stylesheet">
+</head>
+<body class="admin-app dashboard-app">
+  <header class="admin-header">
+    <div class="container admin-header__inner">
+      <a class="brand" href="dashboard.html">
+        <span class="brand__mark">FM</span>
+        <span class="brand__name">FreshMart Admin<small class="brand__caption">ศูนย์จัดการร้าน</small></span>
+      </a>
+      <nav class="admin-nav" aria-label="เมนูผู้ดูแล">
+        <a href="pos.html">ขาย POS</a>
+        <a class="is-active" href="dashboard.html" aria-current="page">Dashboard</a>
+        <a href="index.html">คำสั่งซื้อ</a>
+        <a href="products.html">สินค้า</a>
+        <a href="inventory.html">สต็อก</a>
+        <a href="members.html">ลูกค้า</a>
+        <a href="../index.html">เปิดหน้าร้าน ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container py-4 py-lg-5">
+    <div class="dashboard-heading">
+      <div>
+        <span class="eyebrow dashboard-eyebrow">BUSINESS OVERVIEW</span>
+        <h1>ภาพรวมร้านวันนี้</h1>
+        <p>ยอดรับเงินจริงจากรายการชำระที่ยืนยันแล้ว รวม Online และ POS ตามเวลาไทย</p>
+      </div>
+      <div class="dashboard-controls">
+        <label>
+          <span>ช่วงวิเคราะห์</span>
+          <select class="form-select" data-dashboard-range>
+            <option value="7">7 วัน</option>
+            <option value="30" selected>30 วัน</option>
+            <option value="90">90 วัน</option>
+            <option value="365">365 วัน</option>
+          </select>
+        </label>
+        <button class="btn btn-outline-primary" type="button" data-refresh-dashboard>↻ รีเฟรช</button>
+      </div>
+    </div>
+
+    <div class="dashboard-loading fm-surface" data-dashboard-loading>
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>กำลังคำนวณรายงานจากข้อมูลล่าสุด…</span>
+    </div>
+
+    <div data-dashboard-content hidden>
+      <section class="dashboard-kpis" aria-label="ตัวเลขสำคัญ">
+        <article class="dashboard-kpi dashboard-kpi--today">
+          <span class="dashboard-kpi__icon">฿</span>
+          <div><small>ยอดขายวันนี้</small><strong data-kpi-today>฿0.00</strong><span data-kpi-today-orders>0 รายการ</span></div>
+        </article>
+        <article class="dashboard-kpi">
+          <span class="dashboard-kpi__icon">M</span>
+          <div><small>ยอดขายเดือนนี้</small><strong data-kpi-month>฿0.00</strong><span data-kpi-month-orders>0 รายการ</span></div>
+        </article>
+        <article class="dashboard-kpi">
+          <span class="dashboard-kpi__icon">Y</span>
+          <div><small>ยอดขายปีนี้</small><strong data-kpi-year>฿0.00</strong><span data-kpi-year-orders>0 รายการ</span></div>
+        </article>
+        <article class="dashboard-kpi dashboard-kpi--period">
+          <span class="dashboard-kpi__icon">Ø</span>
+          <div><small data-kpi-period-label>เฉลี่ยต่อรายการ · 30 วัน</small><strong data-kpi-average>฿0.00</strong><span data-kpi-period-orders>0 รายการ</span></div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid dashboard-grid--hero mt-4">
+        <article class="fm-surface dashboard-panel dashboard-trend-panel">
+          <div class="dashboard-panel__head">
+            <div><span class="eyebrow">REVENUE TREND</span><h2 data-trend-title>ยอดขาย 30 วัน</h2></div>
+            <div class="dashboard-period-total"><small>รวมช่วงนี้</small><strong data-period-revenue>฿0.00</strong><span data-period-discount>ส่วนลด ฿0.00</span></div>
+          </div>
+          <div class="sales-chart" data-sales-chart role="img" aria-label="กราฟยอดขายรายวัน"></div>
+          <div class="chart-legend"><span><i data-tone="online"></i>Online</span><span><i data-tone="pos"></i>POS</span></div>
+        </article>
+
+        <article class="fm-surface dashboard-panel">
+          <div class="dashboard-panel__head"><div><span class="eyebrow">SALES CHANNELS</span><h2>ช่องทางขาย</h2></div></div>
+          <div class="channel-summary" data-channel-summary></div>
+          <div class="payment-summary" data-payment-summary></div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid mt-4">
+        <article class="fm-surface dashboard-panel">
+          <div class="dashboard-panel__head"><div><span class="eyebrow">BEST SELLERS</span><h2>สินค้าขายดี</h2></div><small data-ranking-period>30 วันล่าสุด</small></div>
+          <div class="ranking-list" data-top-products></div>
+        </article>
+
+        <article class="fm-surface dashboard-panel">
+          <div class="dashboard-panel__head"><div><span class="eyebrow">ORDER PIPELINE</span><h2>ออเดอร์ตามสถานะ</h2></div></div>
+          <div class="status-summary" data-order-statuses></div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid mt-4">
+        <article class="fm-surface dashboard-panel">
+          <div class="dashboard-panel__head"><div><span class="eyebrow">STOCK ATTENTION</span><h2>สินค้าใกล้หมด</h2></div><a href="inventory.html">เปิดคลังสินค้า →</a></div>
+          <div class="attention-list" data-low-stock></div>
+        </article>
+
+        <article class="fm-surface dashboard-panel">
+          <div class="dashboard-panel__head"><div><span class="eyebrow">PRICE AUDIT</span><h2>ประวัติการเปลี่ยนราคา</h2></div></div>
+          <div class="price-history" data-price-history></div>
+        </article>
+      </section>
+
+      <section class="fm-surface dashboard-panel mt-4 mb-4">
+        <div class="dashboard-panel__head"><div><span class="eyebrow">RECENT CONFIRMED SALES</span><h2>รายการรับเงินล่าสุด</h2></div><small data-generated-at>—</small></div>
+        <div class="recent-sales" data-recent-sales></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="module" src="../js/admin-pwa.js"></script>
+  <script type="module" src="../js/admin-dashboard.js"></script>
+</body>
+</html>
