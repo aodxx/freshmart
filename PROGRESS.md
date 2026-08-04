@@ -3,9 +3,9 @@
 เอกสารนี้เป็นจุดอ้างอิงกลางสำหรับติดตามสถานะของโปรเจกต์ **ร้านชำเจ๊ดี / FreshMart**  
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
-> อัปเดตล่าสุด: 3 สิงหาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–2 ปิดแล้ว; Phase 3 ระบบบริหารสต็อกพัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบ PWA จริง**
-> จุดอ้างอิง GitHub: `main@d3cda016e76ae30911b54ca87b3e7705ab18f0a5`
+> อัปเดตล่าสุด: 4 สิงหาคม 2026
+> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–3 ปิดแล้ว; Phase 4 Storefront POS พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบ PWA จริง**
+> จุดอ้างอิง GitHub: `main@f0bb0f341882a097ed00227c2ef9c1eaf3b8e19b`
 
 ---
 
@@ -15,13 +15,13 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `d3cda016e76ae30911b54ca87b3e7705ab18f0a5` จาก PR #9 (Phase 2) |
-| Branch งานปัจจุบัน | `agent/phase-3-inventory-management` — Stock Ledger, ล็อต/วันหมดอายุ, ตรวจนับ และหน้า Inventory |
-| GitHub Pages | Phase 1–2 อยู่ใน `main`; หน้า Phase 3 รอ Merge |
-| Supabase Backend | Migration `inventory_management` และ `inventory_management_tuning` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
+| GitHub `main` | Merge commit ล่าสุด `f0bb0f341882a097ed00227c2ef9c1eaf3b8e19b` จาก PR #10 (Phase 3) |
+| Branch งานปัจจุบัน | `agent/phase-4-storefront-pos` — POS, เงินสด/PromptPay, ส่วนลด และใบรับเงิน |
+| GitHub Pages | Phase 1–3 อยู่ใน `main`; หน้า Phase 4 รอ Merge |
+| Supabase Backend | Migration `storefront_pos` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
-| งานแรกที่ควรทำ | ตรวจ Draft PR ของ Phase 3 แล้วทดสอบรับเข้า/ปรับลด/ตรวจนับและสแกนบาร์โค้ดบน PWA จริงก่อนปิดเฟส |
+| งานแรกที่ควรทำ | ตรวจ Draft PR ของ Phase 4 แล้วทดสอบขายเงินสด/PromptPay ส่วนลด เงินทอน และสแกนบาร์โค้ดบน PWA จริงก่อนปิดเฟส |
 
 ### ข้อกำหนดที่ห้ามเปลี่ยนโดยไม่ทบทวน PRD
 
@@ -81,7 +81,7 @@
 | GitHub Pages | 🧪 | Repository เป็น Public; PR #3–#6 Merge เข้า `main` แล้ว | ทำ Production smoke test หลังการ Merge เอกสารรอบนี้ |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
-| FreshMart Admin PWA | ✅ | Phase 1 ปิดแล้วหลังติดตั้งและทดสอบกล้อง/สแกนจริงสำเร็จ; Phase 3 เพิ่ม Inventory เข้า App Shell v3 | ทดสอบหน้า Inventory หลัง Merge |
+| FreshMart Admin PWA | ✅ | Phase 1–3 ปิดแล้ว; Phase 4 เพิ่ม Storefront POS เข้า App Shell v4 | ทดสอบหน้า POS หลัง Merge |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
 | โปรไฟล์ LINE | 🧪 | ดึงชื่อและรูปโปรไฟล์ พร้อมบันทึกประวัติลูกค้า | เบอร์โทรไม่สามารถดึงจาก LIFF Profile โดยตรง ต้องให้ลูกค้ากรอก/ยืนยัน |
 | Supabase Auth | ✅ | ใช้ Email/Password สำหรับผู้ดูแลระบบ | เปิด Leaked Password Protection เมื่อแผน/การตั้งค่ารองรับ |
@@ -89,10 +89,11 @@
 | หมวดหมู่สินค้า | 🧪 | เพิ่มหมวดหมู่จากหน้า Admin ได้ ไม่ผูกหมวดไว้ในโค้ด | เพิ่มแก้ไข/เรียงลำดับ/ปิดหมวดหมู่ |
 | สินค้า | 🧪 | เพิ่ม แก้ไข และปิดขายชั่วคราวได้ | ทดสอบฟอร์มกับข้อมูลจริงจำนวนมาก |
 | Product Variants | 🧪 | สินค้า 1 รายการมีหลายขนาด ราคา สต็อก และบาร์โค้ดได้ | เพิ่ม UI จัดการ SKU หากต้องการ |
-| Barcode Scanner | 🧪 | Phase 1 เปลี่ยนเป็นกดครั้งเดียวแล้วเปิดกล้องหลัง พร้อมแยกข้อผิดพลาดสิทธิ์/กล้อง/LINE WebView และมีรูปภาพ/กรอกเลขเป็นทางสำรอง | ทดสอบสิทธิ์กล้อง Android/iOS จริงก่อน Merge |
+| Barcode Scanner | ✅ | ติดตั้ง PWA และทดสอบกล้อง/สแกนบาร์โค้ดจริงผ่านแล้ว; Phase 4 นำ Scanner เดิมมาใช้กับ POS | เฝ้าดูการใช้งานจริง |
 | Open Product Dataset | 🧪 | อยู่ใน `main`; ค้น local-first แล้ว fallback ไป Open Food Facts; Edge Function ถูก Deploy แล้ว | ทดสอบนำเข้า Dataset ภาษาไทยแบบ CSV/TSV ขนาดเล็ก |
 | รูปสินค้า | 🧪 | Bucket `product-images` แบบ Public; บีบอัด WebP; PR #5 แก้กรอบ 4:3 และใช้ `object-fit: contain` แล้ว | ทดสอบรูปจริงแนวตั้ง/แนวนอนบนมือถือหลายรุ่น |
-| สต็อก | 🧪 | Phase 3 เพิ่มรับเข้า/ปรับยอด/เสียหาย/หมดอายุ/สูญหาย/คืน, ล็อต/วันหมดอายุ, FEFO, ตรวจนับ, Append-only Ledger, Low-stock และรายงาน 30 วัน | ทดสอบธุรกรรมจริงบน PWA หลัง Merge |
+| สต็อก | ✅ | Phase 3 ปิดแล้วหลังทดสอบรับเข้า ปรับลด ตรวจนับ และสแกนบาร์โค้ดจริง; POS ใช้ FEFO/Append-only Ledger เดิม | เฝ้าดูการใช้งานจริง |
+| Storefront POS | 🧪 | Phase 4 เพิ่มค้นชื่อ/SKU/บาร์โค้ด ตะกร้า ส่วนลด Admin เงินสด เงินทอน PromptPay QR ใบรับเงิน และรายการขายล่าสุด | Merge แล้วทดสอบขายจริงบนมือถือ |
 | ประวัติราคา | ✅ | บันทึกราคาเก่า ราคาใหม่ ผู้แก้ และเวลา | เพิ่มหน้าดูประวัติใน Admin |
 | รายการสินค้า | 🧪 | ค้นหา กรองหมวด และเลือกขนาดก่อนใส่ตะกร้า | เพิ่ม Product Detail เต็มรูปแบบ |
 | ตะกร้า | 🧪 | เก็บใน `localStorage` โดยใช้ `variant_id`; รองรับจำนวนสินค้า | ทดสอบการ Sync DB สำหรับผู้ใช้ Supabase Auth |
@@ -100,7 +101,7 @@
 | การรับสินค้า | 🧪 | รองรับจัดส่งและรับเองหน้าร้าน | เพิ่มช่วงเวลานัดรับที่ปิด Slot เต็มได้ |
 | เงินสด | 🧪 | แสดง Popup เตรียมเงินตามยอดเมื่อเลือกจัดส่ง | ทดสอบข้อความและยอดรวมค่าจัดส่ง |
 | โอนธนาคาร | 🧪 | ข้อมูลบัญชีตั้งค่าใน `store_settings` พร้อมปุ่มคัดลอก | เพิ่ม QR/โลโก้ธนาคารหากต้องการ |
-| PromptPay | 🧪 | หมายเลขตั้งค่าใน `store_settings` พร้อมปุ่มคัดลอก | เพิ่ม QR PromptPay ที่สร้างจากยอดจริง |
+| PromptPay | 🧪 | POS สร้าง Thai QR ตามยอดจาก `store_settings`; Checkout ลูกค้ายังคงมีปุ่มคัดลอก | ทดสอบสแกน QR POS ด้วยแอปธนาคารจริง |
 | รับเองหน้าร้าน | 🧪 | ซ่อนตัวเลือกชำระเงินและตั้งเป็น `pay_at_store` | ทดสอบช่วงเวลานัดรับ |
 | สลิปชำระเงิน | 🧪 | Bucket `payment-slips` เป็น Private รองรับ JPG/PNG/WebP ไม่เกิน 5 MB | เพิ่มบีบอัดสลิปก่อนอัปโหลด |
 | ประวัติคำสั่งซื้อ | 🧪 | ลูกค้าดูออเดอร์ ยอดค้างชำระ ยอดคงเหลือ และประวัติรับชำระของตนผ่าน LIFF API | ทดสอบกับรายการค้างชำระจริง |
@@ -220,6 +221,19 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 4 สิงหาคม 2026 — Phase 4 Storefront POS
+
+- ยืนยันปิด Phase 3 หลัง Merge PR #10 และทดสอบรับเข้า ปรับลด ตรวจนับ และสแกนบาร์โค้ดจริงสำเร็จ
+- เพิ่มหน้า `admin/pos.html` แบบ Mobile-first สำหรับค้นชื่อ/SKU/บาร์โค้ดและจัดรายการขาย
+- เพิ่มกล้องหลัง การสแกนจากรูป และการกรอกรหัสเป็นทางสำรอง
+- เพิ่มส่วนลดแบบเปอร์เซ็นต์/จำนวนเงิน พร้อมเหตุผลและผู้อนุมัติจากบัญชี Admin
+- รองรับเงินสดพร้อมตรวจยอดรับ/เงินทอน และ PromptPay QR ตามยอด
+- เพิ่มใบรับเงินสำหรับพิมพ์และรายการขายล่าสุด
+- เพิ่ม RPC `admin_complete_pos_sale` ที่ล็อก Variant, สร้าง Order/Payment, ตัด FEFO และบันทึก Ledger ใน Transaction เดียว
+- เพิ่ม Idempotency Key ป้องกันการส่งซ้ำแล้วตัดสต็อกหรือสร้าง Payment ซ้ำ
+- Deploy Migration `storefront_pos` บน Supabase Production
+- Transaction Smoke Test การขาย/ส่วนลด/เงินทอน/Ledger/Timeline/Idempotency/Rollback ผ่าน และ Automated Tests ผ่าน 33/33
 
 ### 3 สิงหาคม 2026 — Phase 3 Inventory Management
 
@@ -432,7 +446,7 @@ Commit หรือ PR ที่แก้:
 - [ ] Product Detail
 - [ ] รีวิวสินค้า
 - [ ] Admin Coupons
-- [ ] QR PromptPay ตามยอด
+- [x] QR PromptPay ตามยอดสำหรับ Storefront POS
 - [ ] Realtime Order Status
 - [ ] UI ให้ลูกค้าแก้ไข/ลบ/ตั้งที่อยู่เริ่มต้น
 - [ ] หมายเหตุและป้ายกำกับลูกค้า เช่น ลูกค้าประจำ, VIP, ร้านอาหาร
@@ -452,6 +466,7 @@ Commit หรือ PR ที่แก้:
 | Checkout และ GPS | `checkout.html`, `js/checkout.js` |
 | ประวัติออเดอร์ลูกค้า/ยอดค้าง | `orders.html`, `js/orders.js` |
 | Admin สินค้า/บาร์โค้ด | `admin/products.html`, `js/admin-products.js`, `js/barcode.js` |
+| Admin ขายหน้าร้าน POS | `admin/pos.html`, `js/admin-pos.js`, `js/promptpay.js`, `css/admin-pos.css` |
 | Admin สต็อก | `admin/inventory.html`, `js/admin-inventory.js`, `css/admin-inventory.css` |
 | Admin ลูกค้า | `admin/members.html`, `js/admin-members.js`, `css/admin-members.css` |
 | Admin ออเดอร์ | `admin/orders.html`, `js/admin-orders.js` |
@@ -461,6 +476,7 @@ Commit หรือ PR ที่แก้:
 | Schema และ RLS | `supabase/migrations/` |
 | การตั้งค่า Frontend | `js/config.js`, `js/supabaseClient.js`, `js/liffClient.js` |
 | Barcode tests | `tests/barcode.test.mjs` |
+| POS tests | `tests/pos.test.mjs` |
 
 ### หลักการ Deploy
 

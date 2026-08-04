@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#087db3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>ขายหน้าร้าน POS | FreshMart Admin</title>
+  <link rel="manifest" href="./admin.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/admin-192.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/style.css" rel="stylesheet">
+  <link href="../css/admin-pos.css" rel="stylesheet">
+</head>
+<body class="admin-app pos-app">
+  <header class="admin-header">
+    <div class="container admin-header__inner">
+      <a class="brand" href="index.html">
+        <span class="brand__mark">FM</span>
+        <span class="brand__name">FreshMart Admin<small class="brand__caption">ศูนย์จัดการร้าน</small></span>
+      </a>
+      <nav class="admin-nav">
+        <a class="is-active" href="pos.html">ขาย POS</a>
+        <a href="index.html">คำสั่งซื้อ</a>
+        <a href="products.html">สินค้า</a>
+        <a href="inventory.html">สต็อก</a>
+        <a href="members.html">ลูกค้า</a>
+        <a href="../index.html">หน้าร้าน ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container py-4 py-lg-5">
+    <div class="pos-heading">
+      <div>
+        <span class="eyebrow pos-eyebrow">STOREFRONT POS</span>
+        <h1>ขายสินค้าหน้าร้าน</h1>
+        <p>สแกนหรือค้นสินค้า รับเงิน และตัดสต็อกพร้อมประวัติในขั้นตอนเดียว</p>
+      </div>
+      <button class="btn btn-primary pos-scan-button" type="button" data-pos-scan>▣ สแกนบาร์โค้ด</button>
+    </div>
+
+    <section class="pos-workspace">
+      <div class="pos-catalog-panel">
+        <section class="pos-search fm-surface" aria-label="ค้นหาสินค้า">
+          <label>
+            <span class="visually-hidden">ค้นหาสินค้า</span>
+            <input class="form-control form-control-lg" type="search" data-pos-search
+              placeholder="ค้นหาชื่อสินค้า SKU หรือบาร์โค้ด" autocomplete="off">
+          </label>
+          <button class="btn btn-outline-primary" type="button" data-pos-scan-inline>▣ สแกน</button>
+          <button class="btn btn-light" type="button" data-pos-refresh>↻</button>
+        </section>
+        <div class="pos-loading" data-pos-loading>
+          <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          <span>กำลังโหลดสินค้า…</span>
+        </div>
+        <section class="pos-product-grid" data-pos-products aria-live="polite"></section>
+        <section class="empty-state fm-surface" data-pos-empty hidden>
+          <span class="empty-state__icon">🔎</span><strong>ไม่พบสินค้า</strong>
+          <span>ลองค้นด้วยชื่อ SKU หรือบาร์โค้ด</span>
+        </section>
+
+        <section class="pos-recent fm-surface" aria-labelledby="pos-recent-title">
+          <div class="pos-recent__head">
+            <div><span class="eyebrow">RECENT SALES</span><h2 id="pos-recent-title">รายการขายล่าสุด</h2></div>
+            <button class="btn btn-sm btn-light" type="button" data-pos-refresh-sales>รีเฟรช</button>
+          </div>
+          <div data-pos-recent-sales><span class="text-secondary small">กำลังโหลด…</span></div>
+        </section>
+      </div>
+
+      <aside class="pos-cart fm-surface" aria-labelledby="pos-cart-title">
+        <div class="pos-cart__head">
+          <div><span class="eyebrow">CURRENT SALE</span><h2 id="pos-cart-title">รายการขาย</h2></div>
+          <button class="btn btn-sm btn-light" type="button" data-pos-clear>ล้าง</button>
+        </div>
+        <div class="pos-cart__items" data-pos-cart-items></div>
+        <div class="pos-cart__empty" data-pos-cart-empty>
+          <span>🛒</span><strong>ยังไม่มีสินค้า</strong><small>แตะสินค้า หรือสแกนบาร์โค้ดเพื่อเริ่มขาย</small>
+        </div>
+
+        <section class="pos-discount" aria-labelledby="pos-discount-title">
+          <button class="pos-discount__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#posDiscountPanel" aria-expanded="false">
+            <span id="pos-discount-title">เพิ่มส่วนลดที่ได้รับอนุญาต</span><span>⌄</span>
+          </button>
+          <div class="collapse" id="posDiscountPanel">
+            <div class="row g-2 pt-3">
+              <div class="col-5">
+                <label class="form-label">รูปแบบ</label>
+                <select class="form-select" data-pos-discount-type>
+                  <option value="percent">เปอร์เซ็นต์</option>
+                  <option value="fixed">จำนวนเงิน</option>
+                </select>
+              </div>
+              <div class="col-7">
+                <label class="form-label">มูลค่าส่วนลด</label>
+                <input class="form-control" type="number" min="0" step="0.01" value="0" data-pos-discount-value>
+              </div>
+              <div class="col-12">
+                <label class="form-label">เหตุผล</label>
+                <input class="form-control" maxlength="300" data-pos-discount-reason placeholder="จำเป็นเมื่อมีส่วนลด">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <dl class="pos-totals">
+          <div><dt>ยอดสินค้า</dt><dd data-pos-subtotal>฿0.00</dd></div>
+          <div class="pos-totals__discount" hidden><dt>ส่วนลด</dt><dd data-pos-discount>−฿0.00</dd></div>
+          <div class="pos-totals__grand"><dt>ยอดสุทธิ</dt><dd data-pos-total>฿0.00</dd></div>
+        </dl>
+        <button class="btn btn-primary btn-lg w-100 pos-pay-button" type="button" data-pos-pay disabled>รับชำระเงิน</button>
+      </aside>
+    </section>
+  </main>
+
+  <div class="modal fade scanner-modal" id="posScannerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+      <div class="modal-content border-0">
+        <div class="modal-header">
+          <div><h2 class="modal-title h5 mb-1">สแกนสินค้าเข้ารายการขาย</h2><p class="small text-secondary mb-0">พบสินค้าแล้วจะเพิ่มลงรายการทันที</p></div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+        </div>
+        <div class="modal-body">
+          <div id="pos-barcode-reader" class="barcode-reader"></div>
+          <div class="scanner-status mt-3" data-pos-scanner-status role="status">กำลังเตรียมกล้อง…</div>
+          <button class="btn btn-primary w-100 mt-3 d-none" type="button" data-pos-start-scanner>ลองเปิดกล้องอีกครั้ง</button>
+          <label class="btn btn-outline-primary w-100 mt-2">📷 ถ่ายรูปหรือเลือกรูป<input class="visually-hidden" type="file" accept="image/*" data-pos-barcode-image></label>
+          <div class="barcode-divider"><span>หรือกรอกบาร์โค้ด / SKU</span></div>
+          <form class="input-group" data-pos-code-form>
+            <input class="form-control" name="code" maxlength="40" autocomplete="off" placeholder="885… หรือ SKU">
+            <button class="btn btn-outline-primary" type="submit">เพิ่มสินค้า</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="posPaymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
+      <form class="modal-content border-0" data-pos-payment-form>
+        <div class="modal-header"><div><small>ชำระเงิน</small><h2 class="modal-title h4 mb-0">ยอดสุทธิ <span data-payment-total>฿0.00</span></h2></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="pos-payment-methods" role="radiogroup" aria-label="วิธีชำระเงิน">
+            <label><input type="radio" name="payment_method" value="cash" checked><span>💵<strong>เงินสด</strong><small>คำนวณเงินทอน</small></span></label>
+            <label><input type="radio" name="payment_method" value="promptpay"><span>📱<strong>PromptPay</strong><small>QR ตามยอด</small></span></label>
+          </div>
+          <section data-cash-panel>
+            <label class="form-label">จำนวนเงินที่รับจากลูกค้า</label>
+            <input class="form-control form-control-lg" name="cash_received" type="number" min="0" step="0.01" inputmode="decimal">
+            <div class="cash-shortcuts mt-2" data-cash-shortcuts></div>
+            <div class="pos-change mt-3"><span>เงินทอน</span><strong data-pos-change>฿0.00</strong></div>
+          </section>
+          <section class="promptpay-panel" data-promptpay-panel hidden>
+            <div class="promptpay-qr" data-promptpay-qr></div>
+            <strong data-promptpay-store>PromptPay</strong>
+            <span>หมายเลข <span data-promptpay-number>—</span></span>
+            <span>ยอดชำระ <strong data-promptpay-total>฿0.00</strong></span>
+            <div class="alert alert-info mt-3 mb-0">ตรวจสอบยอดเข้าแล้วจึงกดปิดการขาย</div>
+          </section>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">ย้อนกลับ</button><button type="submit" class="btn btn-primary btn-lg" data-pos-confirm>ยืนยันรับเงินและปิดการขาย</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="posReceiptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0">
+        <div class="modal-header"><div><small>ขายสำเร็จ</small><h2 class="modal-title h5 mb-0">ใบรับเงินหน้าร้าน</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body" data-pos-receipt></div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">เริ่มรายการใหม่</button><button type="button" class="btn btn-primary" data-pos-print>พิมพ์ใบรับเงิน</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script type="module" src="../js/admin-pwa.js"></script>
+  <script type="module" src="../js/admin-pos.js"></script>
+</body>
+</html>

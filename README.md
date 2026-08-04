@@ -5,6 +5,7 @@
 
 - [หน้าร้าน FreshMart](https://aodxx.github.io/freshmart/)
 - [FreshMart Admin PWA](https://aodxx.github.io/freshmart/admin/)
+- [ขายหน้าร้าน POS](https://aodxx.github.io/freshmart/admin/pos.html)
 - [จัดการสินค้า](https://aodxx.github.io/freshmart/admin/products.html)
 - [บริหารสต็อก](https://aodxx.github.io/freshmart/admin/inventory.html)
 - [เปิดผ่าน LINE LIFF](https://liff.line.me/2010025658-kBKgsnzH)
@@ -56,6 +57,21 @@ App Shell ฝั่งหน้าเว็บ ไม่ Cache ข้อมู�
 
 Frontend ไม่มีสิทธิ์แก้จำนวนคงเหลือตรง การเปลี่ยนแปลงทั้งหมดผ่าน Admin RPC ที่ตรวจ Role,
 ล็อก Variant และบันทึก Ledger ใน Transaction เดียว
+
+## Storefront POS
+
+หน้า `admin/pos.html` ใช้ขายสินค้าหน้าร้านจาก Admin PWA:
+
+- ค้นด้วยชื่อ SKU หรือบาร์โค้ด และสแกนผ่านกล้อง/รูปภาพได้
+- จัดการจำนวนและตรวจยอดคงเหลือระดับ Product Variant
+- ให้ส่วนลดแบบเปอร์เซ็นต์หรือจำนวนเงิน พร้อมบันทึกเหตุผลและผู้อนุมัติ
+- รับเงินสดพร้อมคำนวณเงินทอน หรือสร้าง PromptPay QR ตามยอด
+- ออกใบรับเงินและดูรายการขายล่าสุด
+- ป้องกันการกดซ้ำด้วย Idempotency Key
+
+การปิดการขายเรียก `admin_complete_pos_sale()` ซึ่งสร้าง Order, Payment และ Order Items
+พร้อมตัด FEFO/Stock Ledger ใน Transaction เดียว ระบบไม่เชื่อราคาหรือยอดรวมจากเบราว์เซอร์
+และอนุญาตเฉพาะบัญชี Admin
 
 ## ตั้งผู้ดูแลระบบคนแรก
 
