@@ -9,6 +9,7 @@
 - [จัดการสินค้า](https://aodxx.github.io/freshmart/admin/products.html)
 - [บริหารสต็อก](https://aodxx.github.io/freshmart/admin/inventory.html)
 - [จัดการคูปอง](https://aodxx.github.io/freshmart/admin/coupons.html)
+- [ที่อยู่จัดส่งของลูกค้า](https://aodxx.github.io/freshmart/addresses.html)
 - [เปิดผ่าน LINE LIFF](https://liff.line.me/2010025658-kBKgsnzH)
 
 ## URLs
@@ -111,6 +112,18 @@ Phase 8 อัปเดตสถานะออเดอร์โดยไม่
 Checkout มีปุ่มตรวจคูปองก่อนยืนยันออเดอร์และคำนวณจากราคาในฐานข้อมูลจริง
 กรณี `WELCOME10` ยอดสินค้าต่ำกว่า 200 บาท ระบบจะแสดงขั้นต่ำและยอดที่ต้องเพิ่มเป็นภาษาไทย
 โดยการ Preview ไม่เพิ่ม `used_count`; การใช้สิทธิ์จริงยังเกิดใน Transaction สร้างออเดอร์เท่านั้น
+
+## Customer Saved Addresses
+
+หน้า `addresses.html` ให้ลูกค้า LINE LIFF จัดการที่อยู่จัดส่งของตนเอง:
+
+- เพิ่มและแก้ไขชื่อเรียก ผู้รับ เบอร์โทร รายละเอียดที่อยู่ และ GPS
+- ตั้งที่อยู่หลักเพื่อให้ Checkout เลือกให้อัตโนมัติ
+- ลบที่อยู่ โดยระบบเลื่อนรายการที่เหลือขึ้นเป็นค่าเริ่มต้นเมื่อจำเป็น
+- ออเดอร์เก่ายังคง Snapshot ที่อยู่และพิกัดเดิม ไม่เปลี่ยนตามข้อมูลที่แก้ภายหลัง
+
+คำสั่งเขียนข้อมูลต้องผ่าน `liff-api` ที่ตรวจ LINE Access Token ก่อนเรียก Transactional RPC
+ซึ่งเปิดให้เฉพาะ `service_role`; Frontend และผู้ใช้ Supabase ทั่วไปไม่มีสิทธิ์เขียนตารางโดยตรง
 
 ## ตั้งผู้ดูแลระบบคนแรก
 

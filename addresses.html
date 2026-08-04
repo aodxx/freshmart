@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#087db3">
+  <title>ที่อยู่ของฉัน | FreshMart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><link href="css/style.css" rel="stylesheet">
+</head>
+<body class="customer-app">
+  <header class="app-header"><div class="container app-header__inner">
+    <a class="brand" href="index.html"><span class="brand__mark">FM</span><span class="brand__name">ที่อยู่ของฉัน<small class="brand__caption">จัดส่งได้ถูกบ้าน</small></span></a>
+    <div class="profile-pill"><img data-line-picture alt=""><span data-line-name></span></div>
+  </div></header>
+  <main class="container py-4" style="max-width:800px">
+    <a class="back-link" href="orders.html">← กลับไปคำสั่งซื้อ</a>
+    <div class="page-heading address-page-heading">
+      <div><h1>ที่อยู่จัดส่ง</h1><p>เพิ่ม แก้ไข หรือตั้งที่อยู่ที่ใช้ประจำ</p></div>
+      <button class="btn btn-primary" type="button" data-new-address>+ เพิ่มที่อยู่</button>
+    </div>
+
+    <section class="fm-surface address-editor" data-address-editor hidden>
+      <div class="address-editor__head"><div><small data-form-kicker>เพิ่มข้อมูลใหม่</small><h2 data-form-title>ที่อยู่จัดส่งใหม่</h2></div><button class="btn-close" type="button" aria-label="ปิด" data-cancel-address></button></div>
+      <form data-address-form>
+        <input type="hidden" name="id">
+        <div class="row g-3">
+          <div class="col-12 col-sm-5"><label class="form-label" for="address-label">ชื่อเรียกที่อยู่</label><input class="form-control" id="address-label" name="label" maxlength="40" placeholder="เช่น บ้าน, ที่ทำงาน" required></div>
+          <div class="col-12 col-sm-7"><label class="form-label" for="recipient-name">ชื่อผู้รับ</label><input class="form-control" id="recipient-name" name="recipient_name" maxlength="120" required></div>
+          <div class="col-12"><label class="form-label" for="address-phone">เบอร์โทรผู้รับ</label><input class="form-control" id="address-phone" name="phone" type="tel" inputmode="numeric" maxlength="10" placeholder="เช่น 0801234567" required></div>
+          <div class="col-12"><label class="form-label" for="address-text">บ้านเลขที่และจุดสังเกต</label><textarea class="form-control" id="address-text" name="address" maxlength="1000" rows="4" placeholder="บ้านเลขที่ หมู่บ้าน ตำบล อำเภอ และจุดสังเกต" required></textarea></div>
+        </div>
+        <div class="delivery-location-box mt-3">
+          <div><strong>พิกัดสำหรับร้านนำทาง</strong><span data-address-gps-status>ยังไม่ได้ระบุตำแหน่ง GPS</span></div>
+          <div class="delivery-location-actions"><button class="btn btn-outline-primary btn-sm" type="button" data-address-gps>⌖ ใช้ GPS ปัจจุบัน</button><a class="btn btn-light btn-sm" data-address-map href="#" target="_blank" rel="noopener" hidden>ดูแผนที่ ↗</a></div>
+        </div>
+        <div class="form-check mt-3"><input class="form-check-input" id="address-default" name="is_default" type="checkbox"><label class="form-check-label" for="address-default">ใช้เป็นที่อยู่เริ่มต้นใน Checkout</label></div>
+        <div class="address-editor__actions"><button class="btn btn-light" type="button" data-cancel-address>ยกเลิก</button><button class="btn btn-primary" type="submit">บันทึกที่อยู่</button></div>
+      </form>
+    </section>
+
+    <div class="address-summary" data-address-summary hidden></div>
+    <section class="address-list" data-address-list><div class="text-center py-5"><div class="spinner-border"></div><p class="text-secondary mt-2">กำลังโหลดที่อยู่...</p></div></section>
+  </main>
+  <nav class="bottom-nav" aria-label="เมนูหลัก">
+    <a class="bottom-nav__item" href="index.html"><span class="bottom-nav__icon">⌂</span><span>หน้าร้าน</span></a>
+    <a class="bottom-nav__item is-active" href="orders.html"><span class="bottom-nav__icon">▤</span><span>บัญชีของฉัน</span></a>
+    <a class="bottom-nav__item" href="cart.html"><span class="bottom-nav__icon">🛒</span><span>ตะกร้า</span><span class="cart-badge" data-cart-count>0</span></a>
+  </nav>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script type="module" src="js/addresses.js"></script>
+</body>
+</html>
