@@ -46,7 +46,7 @@ test('PWA icons have their declared PNG dimensions', async () => {
 });
 
 test('all primary admin pages register the manifest and PWA controller', async () => {
-  for (const page of ['admin/index.html', 'admin/products.html', 'admin/members.html']) {
+  for (const page of ['admin/index.html', 'admin/products.html', 'admin/inventory.html', 'admin/members.html']) {
     const html = await read(page);
     assert.match(html, /rel="manifest" href="\.\/admin\.webmanifest"/);
     assert.match(html, /src="\.\.\/js\/admin-pwa\.js"/);

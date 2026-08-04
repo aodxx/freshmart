@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#087db3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>คลังสินค้า | FreshMart Admin</title>
+  <link rel="manifest" href="./admin.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/admin-192.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/style.css" rel="stylesheet">
+  <link href="../css/admin-inventory.css" rel="stylesheet">
+</head>
+<body class="admin-app">
+  <header class="admin-header">
+    <div class="container admin-header__inner">
+      <a class="brand" href="index.html">
+        <span class="brand__mark">FM</span>
+        <span class="brand__name">FreshMart Admin<small class="brand__caption">ศูนย์จัดการร้าน</small></span>
+      </a>
+      <nav class="admin-nav">
+        <a href="index.html">คำสั่งซื้อ</a>
+        <a href="products.html">สินค้า</a>
+        <a class="is-active" href="inventory.html">สต็อก</a>
+        <a href="members.html">ลูกค้า</a>
+        <a href="../index.html">เปิดหน้าร้าน ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container py-4 py-lg-5">
+    <div class="inventory-heading">
+      <div>
+        <span class="eyebrow inventory-eyebrow">INVENTORY CONTROL</span>
+        <h1>ระบบบริหารสต็อก</h1>
+        <p>รับเข้า ปรับยอด ตรวจนับ และย้อนดูทุกการเคลื่อนไหวระดับสินค้าและล็อต</p>
+      </div>
+      <div class="inventory-heading__actions">
+        <button class="btn btn-outline-primary" type="button" data-scan-inventory>▣ สแกนรับสินค้า</button>
+        <button class="btn btn-primary" type="button" data-open-receive>+ รับสินค้าเข้า</button>
+      </div>
+    </div>
+
+    <section class="inventory-kpis" aria-label="ภาพรวมคลังสินค้า">
+      <button type="button" class="inventory-kpi is-active" data-kpi-filter="all">
+        <span>สินค้าคงเหลือ</span><strong data-kpi-units>0</strong><small>หน่วยทุก Variant</small>
+      </button>
+      <button type="button" class="inventory-kpi inventory-kpi--warning" data-kpi-filter="low">
+        <span>ใกล้หมด</span><strong data-kpi-low>0</strong><small>รายการต้องเติม</small>
+      </button>
+      <button type="button" class="inventory-kpi inventory-kpi--danger" data-kpi-filter="expiring">
+        <span>ใกล้หมดอายุ</span><strong data-kpi-expiring>0</strong><small>ภายใน 30 วัน</small>
+      </button>
+      <button type="button" class="inventory-kpi" data-kpi-filter="tracked">
+        <span>ล็อตที่ติดตาม</span><strong data-kpi-lots>0</strong><small>ล็อตคงเหลือ</small>
+      </button>
+    </section>
+
+    <section class="admin-toolbar inventory-toolbar" aria-label="ค้นหาและกรองสต็อก">
+      <input class="form-control" type="search" placeholder="ค้นหาชื่อสินค้า ขนาด หรือบาร์โค้ด" data-inventory-search>
+      <select class="form-select" aria-label="กรองสถานะสต็อก" data-inventory-filter>
+        <option value="all">ทุกสถานะ</option>
+        <option value="low">ใกล้หมด</option>
+        <option value="expiring">ใกล้หมดอายุ</option>
+        <option value="expired">หมดอายุแล้ว</option>
+        <option value="tracked">มีเลขล็อต</option>
+        <option value="untracked">ยอดที่ยังไม่ผูกล็อต</option>
+      </select>
+      <button class="btn btn-light" type="button" data-refresh-inventory>↻ รีเฟรช</button>
+    </section>
+
+    <div class="inventory-loading" data-inventory-loading>
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>กำลังโหลดข้อมูลคลังสินค้า…</span>
+    </div>
+    <section class="inventory-list" data-inventory-list aria-live="polite"></section>
+    <section class="empty-state fm-surface" data-inventory-empty hidden>
+      <span class="empty-state__icon">📦</span>
+      <strong>ไม่พบสินค้า</strong>
+      <span>ลองเปลี่ยนคำค้นหาหรือตัวกรอง</span>
+    </section>
+
+    <section class="inventory-report fm-surface mt-4" aria-labelledby="velocity-title">
+      <div class="inventory-report__head">
+        <div>
+          <span class="eyebrow">30-DAY MOVEMENT</span>
+          <h2 id="velocity-title">สินค้าเคลื่อนไหวเร็วและค้างสต็อก</h2>
+        </div>
+        <span class="inventory-report__note">คำนวณจาก Stock Movement ประเภทขาย</span>
+      </div>
+      <div class="inventory-velocity" data-inventory-velocity></div>
+    </section>
+  </main>
+
+  <div class="modal fade" id="inventoryOperationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content border-0" data-inventory-operation-form>
+        <div class="modal-header">
+          <div><small>บันทึก Stock Movement</small><h2 class="modal-title h5 mb-0" data-operation-title>รับสินค้าเข้า</h2></div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="variant_id">
+          <div class="selected-variant mb-3" data-selected-variant>กรุณาเลือกสินค้า</div>
+          <div class="row g-3">
+            <div class="col-md-7">
+              <label class="form-label">สินค้า / ขนาด</label>
+              <select class="form-select" name="variant_selector" required></select>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label">ประเภทการเคลื่อนไหว</label>
+              <select class="form-select" name="operation_type" required>
+                <option value="restock">รับสินค้าเข้า</option>
+                <option value="return">ลูกค้าคืนสินค้า</option>
+                <option value="adjustment_add">ปรับเพิ่ม</option>
+                <option value="adjustment_remove">ปรับลด</option>
+                <option value="damage">สินค้าเสียหาย</option>
+                <option value="expired">สินค้าหมดอายุ</option>
+                <option value="loss">สูญหาย</option>
+                <option value="supplier_return">คืนผู้จำหน่าย</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">จำนวน</label>
+              <input class="form-control" name="quantity" type="number" min="1" step="1" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">เลขล็อต <span class="text-secondary">(ถ้ามี)</span></label>
+              <input class="form-control" name="lot_number" maxlength="80" list="inventory-lot-options" placeholder="เช่น LOT-260803">
+              <datalist id="inventory-lot-options"></datalist>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">วันหมดอายุ <span class="text-secondary">(ถ้ามี)</span></label>
+              <input class="form-control" name="expiry_date" type="date">
+            </div>
+            <div class="col-md-5">
+              <label class="form-label">เลขเอกสารอ้างอิง</label>
+              <input class="form-control" name="reference_number" maxlength="120" placeholder="ใบส่งของ / ใบคืนสินค้า">
+            </div>
+            <div class="col-md-7">
+              <label class="form-label">เหตุผล <span class="text-danger">*</span></label>
+              <input class="form-control" name="reason" maxlength="500" required placeholder="ระบุสาเหตุให้ตรวจสอบย้อนหลังได้">
+            </div>
+          </div>
+          <div class="inventory-impact mt-3" data-inventory-impact></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">ยืนยันบันทึก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="stockCountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content border-0" data-stock-count-form>
+        <div class="modal-header"><h2 class="modal-title h5">ตรวจนับสต็อกจริง</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <input type="hidden" name="variant_id">
+          <div class="selected-variant mb-3" data-count-variant></div>
+          <label class="form-label">จำนวนที่ระบบบันทึกไว้</label>
+          <input class="form-control mb-3" name="expected_quantity" readonly>
+          <label class="form-label">จำนวนที่นับได้จริง</label>
+          <input class="form-control mb-3" name="counted_quantity" type="number" min="0" step="1" required>
+          <label class="form-label">หมายเหตุ</label>
+          <textarea class="form-control" name="note" rows="2" maxlength="500" placeholder="เช่น ตรวจนับรอบสิ้นเดือน"></textarea>
+          <div class="inventory-impact mt-3" data-count-impact></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button><button type="submit" class="btn btn-primary">บันทึกผลตรวจนับ</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="movementHistoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content border-0">
+        <div class="modal-header"><div><small>Append-only Ledger</small><h2 class="modal-title h5 mb-0" data-history-title>ประวัติ Stock Movement</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body" data-movement-history></div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิด</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade scanner-modal" id="inventoryScannerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+      <div class="modal-content border-0">
+        <div class="modal-header"><div><h2 class="modal-title h5 mb-1">สแกนเพื่อรับสินค้าเข้า</h2><p class="small text-secondary mb-0">พบสินค้าแล้วระบบจะเปิดแบบฟอร์มรับเข้าทันที</p></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div id="inventory-barcode-reader" class="barcode-reader"></div>
+          <div class="scanner-status mt-3" data-inventory-scanner-status role="status">กำลังเตรียมกล้อง…</div>
+          <button class="btn btn-primary w-100 mt-3 d-none" type="button" data-inventory-start-scanner>ลองเปิดกล้องอีกครั้ง</button>
+          <label class="btn btn-outline-primary w-100 mt-2">📷 ถ่ายรูปหรือเลือกรูป<input class="visually-hidden" type="file" accept="image/*" data-inventory-barcode-image></label>
+          <div class="barcode-divider"><span>หรือกรอกเลขบาร์โค้ด</span></div>
+          <form class="input-group" data-inventory-barcode-form>
+            <input class="form-control" name="barcode" inputmode="numeric" minlength="8" maxlength="14" placeholder="เช่น 885..." required>
+            <button class="btn btn-outline-primary" type="submit">ค้นหา</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script type="module" src="../js/admin-pwa.js"></script>
+  <script type="module" src="../js/admin-inventory.js"></script>
+</body>
+</html>

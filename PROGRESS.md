@@ -4,8 +4,8 @@
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
 > อัปเดตล่าสุด: 3 สิงหาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — Phase 1 FreshMart Admin PWA พัฒนาแล้วบน Branch แยก รอทดสอบกล้องและการติดตั้งบนมือถือจริงก่อน Merge**
-> จุดอ้างอิง GitHub: `main@450e17a421d2a9e6fa411c4eb55789fa5ea28a7e`
+> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–2 ปิดแล้ว; Phase 3 ระบบบริหารสต็อกพัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบ PWA จริง**
+> จุดอ้างอิง GitHub: `main@d3cda016e76ae30911b54ca87b3e7705ab18f0a5`
 
 ---
 
@@ -15,13 +15,13 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `450e17a421d2a9e6fa411c4eb55789fa5ea28a7e` จาก PR #7 |
-| Branch งานปัจจุบัน | `agent/phase-1-admin-pwa` — Admin PWA และกล้องสแกนแบบแตะครั้งเดียว |
-| GitHub Pages | โค้ดจาก PR #3–#6 อยู่ใน `main` แล้ว |
-| Supabase Backend | Migration และ Edge Function สำหรับ Barcode, GPS และบัญชีค้างชำระถูก Deploy ตามประวัติงาน; ตรวจ Dashboard ซ้ำก่อนเปลี่ยน Backend |
+| GitHub `main` | Merge commit ล่าสุด `d3cda016e76ae30911b54ca87b3e7705ab18f0a5` จาก PR #9 (Phase 2) |
+| Branch งานปัจจุบัน | `agent/phase-3-inventory-management` — Stock Ledger, ล็อต/วันหมดอายุ, ตรวจนับ และหน้า Inventory |
+| GitHub Pages | Phase 1–2 อยู่ใน `main`; หน้า Phase 3 รอ Merge |
+| Supabase Backend | Migration `inventory_management` และ `inventory_management_tuning` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
-| งานแรกที่ควรทำ | ตรวจ Draft PR ของ Phase 1 แล้วทดสอบติดตั้ง PWA/สิทธิ์กล้องบน Android และ iPhone จริงก่อนอนุมัติ Merge |
+| งานแรกที่ควรทำ | ตรวจ Draft PR ของ Phase 3 แล้วทดสอบรับเข้า/ปรับลด/ตรวจนับและสแกนบาร์โค้ดบน PWA จริงก่อนปิดเฟส |
 
 ### ข้อกำหนดที่ห้ามเปลี่ยนโดยไม่ทบทวน PRD
 
@@ -81,7 +81,7 @@
 | GitHub Pages | 🧪 | Repository เป็น Public; PR #3–#6 Merge เข้า `main` แล้ว | ทำ Production smoke test หลังการ Merge เอกสารรอบนี้ |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
-| FreshMart Admin PWA | 🧪 | Branch `agent/phase-1-admin-pwa` เพิ่ม Manifest, Service Worker, ไอคอน, Install Prompt, Offline Shell และแจ้งอัปเดต | ทดสอบการติดตั้ง Android Chrome และ iPhone Home Screen ก่อน Merge |
+| FreshMart Admin PWA | ✅ | Phase 1 ปิดแล้วหลังติดตั้งและทดสอบกล้อง/สแกนจริงสำเร็จ; Phase 3 เพิ่ม Inventory เข้า App Shell v3 | ทดสอบหน้า Inventory หลัง Merge |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
 | โปรไฟล์ LINE | 🧪 | ดึงชื่อและรูปโปรไฟล์ พร้อมบันทึกประวัติลูกค้า | เบอร์โทรไม่สามารถดึงจาก LIFF Profile โดยตรง ต้องให้ลูกค้ากรอก/ยืนยัน |
 | Supabase Auth | ✅ | ใช้ Email/Password สำหรับผู้ดูแลระบบ | เปิด Leaked Password Protection เมื่อแผน/การตั้งค่ารองรับ |
@@ -92,7 +92,7 @@
 | Barcode Scanner | 🧪 | Phase 1 เปลี่ยนเป็นกดครั้งเดียวแล้วเปิดกล้องหลัง พร้อมแยกข้อผิดพลาดสิทธิ์/กล้อง/LINE WebView และมีรูปภาพ/กรอกเลขเป็นทางสำรอง | ทดสอบสิทธิ์กล้อง Android/iOS จริงก่อน Merge |
 | Open Product Dataset | 🧪 | อยู่ใน `main`; ค้น local-first แล้ว fallback ไป Open Food Facts; Edge Function ถูก Deploy แล้ว | ทดสอบนำเข้า Dataset ภาษาไทยแบบ CSV/TSV ขนาดเล็ก |
 | รูปสินค้า | 🧪 | Bucket `product-images` แบบ Public; บีบอัด WebP; PR #5 แก้กรอบ 4:3 และใช้ `object-fit: contain` แล้ว | ทดสอบรูปจริงแนวตั้ง/แนวนอนบนมือถือหลายรุ่น |
-| สต็อก | 🧪 | ตัดสต็อกระดับ Variant และมี Low-stock threshold | เพิ่มหน้ารายงาน Stock Movements และรับสินค้าเข้า |
+| สต็อก | 🧪 | Phase 3 เพิ่มรับเข้า/ปรับยอด/เสียหาย/หมดอายุ/สูญหาย/คืน, ล็อต/วันหมดอายุ, FEFO, ตรวจนับ, Append-only Ledger, Low-stock และรายงาน 30 วัน | ทดสอบธุรกรรมจริงบน PWA หลัง Merge |
 | ประวัติราคา | ✅ | บันทึกราคาเก่า ราคาใหม่ ผู้แก้ และเวลา | เพิ่มหน้าดูประวัติใน Admin |
 | รายการสินค้า | 🧪 | ค้นหา กรองหมวด และเลือกขนาดก่อนใส่ตะกร้า | เพิ่ม Product Detail เต็มรูปแบบ |
 | ตะกร้า | 🧪 | เก็บใน `localStorage` โดยใช้ `variant_id`; รองรับจำนวนสินค้า | ทดสอบการ Sync DB สำหรับผู้ใช้ Supabase Auth |
@@ -104,7 +104,7 @@
 | รับเองหน้าร้าน | 🧪 | ซ่อนตัวเลือกชำระเงินและตั้งเป็น `pay_at_store` | ทดสอบช่วงเวลานัดรับ |
 | สลิปชำระเงิน | 🧪 | Bucket `payment-slips` เป็น Private รองรับ JPG/PNG/WebP ไม่เกิน 5 MB | เพิ่มบีบอัดสลิปก่อนอัปโหลด |
 | ประวัติคำสั่งซื้อ | 🧪 | ลูกค้าดูออเดอร์ ยอดค้างชำระ ยอดคงเหลือ และประวัติรับชำระของตนผ่าน LIFF API | ทดสอบกับรายการค้างชำระจริง |
-| Admin Orders | 🚧 | มีหน้าแสดงและเปลี่ยนสถานะคำสั่งซื้อ | ทดสอบยืนยัน/ปฏิเสธสลิปและ Tracking |
+| Admin Orders | ✅ | Phase 2 ปิดแล้ว: ตรวจสลิป สถานะ จัดส่ง Timeline คืนสต็อก และ LINE แจ้งลูกค้า | เฝ้าดูการใช้งานจริง |
 | Dashboard | 🚧 | มีหน้า Admin พื้นฐาน | เพิ่มยอดขายรายวัน/เดือน/ปีและสินค้าขายดี |
 | สมาชิก/ลูกค้า | 🧪 | PR #6 อยู่ใน `main`; Customer Center แสดงประวัติซื้อ ที่อยู่ GPS ปุ่มนำทาง บัญชีค้างชำระ และรับชำระบางส่วน | ทดสอบข้อมูลจริงบนมือถือและสร้างหนี้ทดสอบที่ควบคุมได้ 1 รายการ |
 | คูปอง | 🚧 | ฐานข้อมูลและ validation ฝั่ง DB พร้อม; มี `WELCOME10` | เพิ่มหน้า Admin จัดการคูปอง |
@@ -131,7 +131,9 @@
 | `product_variants` | ขนาด ราคา สต็อก SKU และสถานะ |
 | `open_product_catalog` | ข้อมูลอ้างอิงจาก Open Dataset: บาร์โค้ด ชื่อ แบรนด์ รูป หมวด และแหล่งที่มา |
 | `product_price_history` | ประวัติการเปลี่ยนราคา |
-| `stock_movements` | ประวัติรับเข้า ขาย คืน และปรับสต็อก |
+| `stock_movements` | Ledger แบบ Append-only ของการรับเข้า ขาย คืน ตัดออก และตรวจนับ |
+| `inventory_lots` | ยอดคงเหลือแยกเลขล็อตและวันหมดอายุ |
+| `stock_counts` / `stock_count_items` | หัวรายการตรวจนับ จำนวนตามระบบ จำนวนจริง และส่วนต่าง |
 | `carts` / `cart_items` | ตะกร้าที่ Sync กับบัญชี Supabase |
 | `orders` / `order_items` | คำสั่งซื้อและ Snapshot สินค้า/ขนาด/ราคา |
 | `payments` | วิธีชำระ สถานะ และ Path สลิป |
@@ -218,6 +220,18 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 3 สิงหาคม 2026 — Phase 3 Inventory Management
+
+- เพิ่มหน้า `admin/inventory.html` แบบ Mobile-first พร้อม KPI ค้นหา กรอง และรายงาน 30 วัน
+- รองรับรับเข้า ปรับเพิ่ม/ลด ลูกค้าคืน เสียหาย หมดอายุ สูญหาย และคืนผู้จำหน่าย
+- เพิ่มเลขล็อต วันหมดอายุ ยอดคงเหลือระดับล็อต และการตัดล็อตแบบ FEFO
+- เพิ่มการตรวจนับจริง บันทึกจำนวนตามระบบ จำนวนที่นับได้ และส่วนต่าง
+- เปลี่ยน `stock_movements` เป็น Append-only Ledger และบล็อกการแก้จำนวนตรงจากหน้าสินค้า
+- เพิ่ม Admin RPC ที่ล็อก Variant และบันทึกยอด/ล็อต/Ledger ใน Transaction เดียว
+- เพิ่มสแกนกล้อง รูปภาพ และกรอกเลขบาร์โค้ดเพื่อเปิดแบบฟอร์มรับสินค้าเข้า
+- Deploy Migration `inventory_management` และ `inventory_management_tuning` บน Supabase Production
+- Transaction Smoke Test รับเข้า/เสียหาย/ตรวจนับ/Append-only/Rollback ผ่าน และ Automated Tests ผ่าน 26/26
 
 ### 3 สิงหาคม 2026 — Phase 2 Order Operations
 
@@ -397,20 +411,20 @@ Commit หรือ PR ที่แก้:
 
 ### Priority 2 — ทำ Admin Orders ให้สมบูรณ์
 
-- [ ] แสดงรูปสลิปด้วย Signed URL
-- [ ] ปุ่มยืนยัน/ปฏิเสธการชำระเงิน
-- [ ] บันทึกเหตุผลเมื่อปฏิเสธ
-- [ ] เปลี่ยนสถานะ `pending → paid → shipped → completed`
-- [ ] เพิ่มเลขพัสดุ/รายละเอียดการจัดส่ง
-- [ ] ส่ง LINE กลับหาลูกค้าทุกครั้งที่สถานะเปลี่ยน
+- [x] แสดงรูปสลิปด้วย Signed URL
+- [x] ปุ่มยืนยัน/ปฏิเสธการชำระเงิน
+- [x] บันทึกเหตุผลเมื่อปฏิเสธ
+- [x] เปลี่ยนสถานะตามลำดับจนถึง `completed`
+- [x] เพิ่มเลขพัสดุ/รายละเอียดการจัดส่ง
+- [x] ส่ง LINE กลับหาลูกค้าทุกครั้งที่สถานะเปลี่ยน
 
 ### Priority 3 — Dashboard และรายงาน
 
 - [ ] ยอดขายวันนี้/เดือนนี้/ปีนี้
 - [ ] จำนวนออเดอร์ตามสถานะ
 - [ ] สินค้าขายดี
-- [ ] สินค้าใกล้หมด/หมด
-- [ ] ประวัติรับเข้าและปรับสต็อก
+- [x] สินค้าใกล้หมด/หมด
+- [x] ประวัติรับเข้าและปรับสต็อก
 - [ ] ประวัติการเปลี่ยนราคา
 
 ### Priority 4 — ฟีเจอร์เสริม
@@ -438,6 +452,7 @@ Commit หรือ PR ที่แก้:
 | Checkout และ GPS | `checkout.html`, `js/checkout.js` |
 | ประวัติออเดอร์ลูกค้า/ยอดค้าง | `orders.html`, `js/orders.js` |
 | Admin สินค้า/บาร์โค้ด | `admin/products.html`, `js/admin-products.js`, `js/barcode.js` |
+| Admin สต็อก | `admin/inventory.html`, `js/admin-inventory.js`, `css/admin-inventory.css` |
 | Admin ลูกค้า | `admin/members.html`, `js/admin-members.js`, `css/admin-members.css` |
 | Admin ออเดอร์ | `admin/orders.html`, `js/admin-orders.js` |
 | LIFF Backend | `supabase/functions/liff-api/index.ts` |

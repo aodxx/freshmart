@@ -70,16 +70,20 @@ function addVariantRow(variant = {}) {
 }
 
 function readVariants() {
-  return [...rows.querySelectorAll('.variant-row')].map((row, index) => ({
-    id: row.querySelector('[data-field="id"]').value || null,
-    variant_name: row.querySelector('[data-field="variant_name"]').value.trim(),
-    barcode: normalizeBarcode(row.querySelector('[data-field="barcode"]').value) || null,
-    price: Number(row.querySelector('[data-field="price"]').value),
-    stock_qty: Number(row.querySelector('[data-field="stock_qty"]').value),
-    low_stock_threshold: Number(row.querySelector('[data-field="low_stock_threshold"]').value),
-    sort_order: index,
-    is_active: true
-  }));
+  return [...rows.querySelectorAll('.variant-row')].map((row, index) => {
+    const id = row.querySelector('[data-field="id"]').value || null;
+    const existing = products.flatMap(product => product.variants).find(variant => variant.id === id);
+    return {
+      id,
+      variant_name: row.querySelector('[data-field="variant_name"]').value.trim(),
+      barcode: normalizeBarcode(row.querySelector('[data-field="barcode"]').value) || null,
+      price: Number(row.querySelector('[data-field="price"]').value),
+      stock_qty: existing?.stock_qty ?? 0,
+      low_stock_threshold: Number(row.querySelector('[data-field="low_stock_threshold"]').value),
+      sort_order: index,
+      is_active: true
+    };
+  });
 }
 
 async function compressImage(file) {

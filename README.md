@@ -3,11 +3,11 @@
 เว็บร้านค้าแบบ Static Site ใช้ Supabase เป็นฐานข้อมูล, Authentication, Storage, Realtime และ Edge Functions
 ลิงก์ใช้งาน:
 
-.[https://aodxx.github.io/freshmart/]
-หน้าร้าน FreshMart.[https://aodxx.github.io/freshmart/admin/products.html]
-หน้าจัดการสินค้า
-
-เปิดผ่าน LINE [https://liff.line.me/2010025658-kBKgsnzH]
+- [หน้าร้าน FreshMart](https://aodxx.github.io/freshmart/)
+- [FreshMart Admin PWA](https://aodxx.github.io/freshmart/admin/)
+- [จัดการสินค้า](https://aodxx.github.io/freshmart/admin/products.html)
+- [บริหารสต็อก](https://aodxx.github.io/freshmart/admin/inventory.html)
+- [เปิดผ่าน LINE LIFF](https://liff.line.me/2010025658-kBKgsnzH)
 ## URLs
 
 - Supabase project: `jilaasxicogktwrjnkmu`
@@ -42,6 +42,20 @@ App Shell ฝั่งหน้าเว็บ ไม่ Cache ข้อมู�
 - เมื่อมีเวอร์ชันใหม่ ระบบแสดงปุ่มอัปเดตแอป
 
 > การอนุญาตกล้องครั้งแรกต้องยืนยันโดยผู้ใช้ตามข้อกำหนดของระบบปฏิบัติการ
+
+## Inventory Management
+
+หน้า `admin/inventory.html` เป็นศูนย์บริหารสต็อกระดับ Product Variant:
+
+- รับสินค้าเข้าและสแกนบาร์โค้ดเพื่อเลือกสินค้า
+- ปรับเพิ่ม/ลด พร้อมเหตุผลและเลขเอกสารอ้างอิง
+- บันทึกสินค้าเสียหาย หมดอายุ สูญหาย คืนจากลูกค้า และคืนผู้จำหน่าย
+- รองรับเลขล็อต วันหมดอายุ และตัดล็อตแบบ FEFO
+- ตรวจนับสต็อกจริงและบันทึกส่วนต่าง
+- ดู Stock Movement แบบ Append-only และรายงานการเคลื่อนไหว 30 วัน
+
+Frontend ไม่มีสิทธิ์แก้จำนวนคงเหลือตรง การเปลี่ยนแปลงทั้งหมดผ่าน Admin RPC ที่ตรวจ Role,
+ล็อก Variant และบันทึก Ledger ใน Transaction เดียว
 
 ## ตั้งผู้ดูแลระบบคนแรก
 
