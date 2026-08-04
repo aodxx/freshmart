@@ -34,6 +34,12 @@
   ],
   "shortcuts": [
     {
+      "name": "Dashboard และรายงาน",
+      "short_name": "Dashboard",
+      "url": "./dashboard.html",
+      "icons": [{ "src": "./icons/admin-192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "ขายสินค้าหน้าร้าน",
       "short_name": "ขาย POS",
       "url": "./pos.html",

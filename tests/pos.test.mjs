@@ -63,9 +63,9 @@ test('PromptPay payload normalizes Thai phone, embeds exact amount and has a val
   assert.equal(payload.slice(-4), crc16Ccitt(payload.slice(0, -4)));
 });
 
-test('Admin PWA v4 caches POS shell but no Supabase transaction data', async () => {
+test('Admin PWA caches POS shell but no Supabase transaction data', async () => {
   const worker = await read('admin/service-worker.js');
-  assert.match(worker, /freshmart-admin-shell-v4\.0\.0/);
+  assert.match(worker, /freshmart-admin-shell-v5\.0\.0/);
   for (const path of ['./pos.html', '../css/admin-pos.css', '../js/admin-pos.js', '../js/promptpay.js']) {
     assert.ok(worker.includes(`'${path}'`));
   }

@@ -4,8 +4,8 @@
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
 > อัปเดตล่าสุด: 4 สิงหาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–3 ปิดแล้ว; Phase 4 Storefront POS พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบ PWA จริง**
-> จุดอ้างอิง GitHub: `main@f0bb0f341882a097ed00227c2ef9c1eaf3b8e19b`
+> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–4 ปิดแล้ว; Phase 5 Dashboard และรายงานพัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบ PWA จริง**
+> จุดอ้างอิง GitHub: `main@23c2e2e09f15de3e57b71f6d5b8a24b3b2be4ea3`
 
 ---
 
@@ -15,13 +15,13 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `f0bb0f341882a097ed00227c2ef9c1eaf3b8e19b` จาก PR #10 (Phase 3) |
-| Branch งานปัจจุบัน | `agent/phase-4-storefront-pos` — POS, เงินสด/PromptPay, ส่วนลด และใบรับเงิน |
-| GitHub Pages | Phase 1–3 อยู่ใน `main`; หน้า Phase 4 รอ Merge |
-| Supabase Backend | Migration `storefront_pos` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
+| GitHub `main` | Merge commit ล่าสุด `23c2e2e09f15de3e57b71f6d5b8a24b3b2be4ea3` จาก PR #11 (Phase 4) |
+| Branch งานปัจจุบัน | `agent/phase-5-sales-analytics-dashboard` — Dashboard ยอดขาย รายงานสินค้า และ Price Audit |
+| GitHub Pages | Phase 1–4 อยู่ใน `main`; หน้า Phase 5 รอ Merge |
+| Supabase Backend | Migration `sales_analytics_dashboard` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
-| งานแรกที่ควรทำ | ตรวจ Draft PR ของ Phase 4 แล้วทดสอบขายเงินสด/PromptPay ส่วนลด เงินทอน และสแกนบาร์โค้ดบน PWA จริงก่อนปิดเฟส |
+| งานแรกที่ควรทำ | ตรวจ Draft PR ของ Phase 5 แล้วทดสอบ Dashboard ด้วยรายการขายที่ยืนยันแล้วจาก Online/POS ก่อนปิดเฟส |
 
 ### ข้อกำหนดที่ห้ามเปลี่ยนโดยไม่ทบทวน PRD
 
@@ -78,10 +78,10 @@
 
 | โมดูล | สถานะ | รายละเอียดล่าสุด | งานที่ยังเหลือ |
 |---|---:|---|---|
-| GitHub Pages | 🧪 | Repository เป็น Public; PR #3–#6 Merge เข้า `main` แล้ว | ทำ Production smoke test หลังการ Merge เอกสารรอบนี้ |
+| GitHub Pages | 🧪 | Phase 1–4 อยู่ใน `main`; Phase 5 รอ Merge | ตรวจหน้า Dashboard หลัง GitHub Pages Deploy |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
-| FreshMart Admin PWA | ✅ | Phase 1–3 ปิดแล้ว; Phase 4 เพิ่ม Storefront POS เข้า App Shell v4 | ทดสอบหน้า POS หลัง Merge |
+| FreshMart Admin PWA | ✅ | Phase 1–4 ปิดแล้ว; Phase 5 เพิ่ม Dashboard เข้า App Shell v5 | ทดสอบหน้า Dashboard หลัง Merge |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
 | โปรไฟล์ LINE | 🧪 | ดึงชื่อและรูปโปรไฟล์ พร้อมบันทึกประวัติลูกค้า | เบอร์โทรไม่สามารถดึงจาก LIFF Profile โดยตรง ต้องให้ลูกค้ากรอก/ยืนยัน |
 | Supabase Auth | ✅ | ใช้ Email/Password สำหรับผู้ดูแลระบบ | เปิด Leaked Password Protection เมื่อแผน/การตั้งค่ารองรับ |
@@ -93,8 +93,8 @@
 | Open Product Dataset | 🧪 | อยู่ใน `main`; ค้น local-first แล้ว fallback ไป Open Food Facts; Edge Function ถูก Deploy แล้ว | ทดสอบนำเข้า Dataset ภาษาไทยแบบ CSV/TSV ขนาดเล็ก |
 | รูปสินค้า | 🧪 | Bucket `product-images` แบบ Public; บีบอัด WebP; PR #5 แก้กรอบ 4:3 และใช้ `object-fit: contain` แล้ว | ทดสอบรูปจริงแนวตั้ง/แนวนอนบนมือถือหลายรุ่น |
 | สต็อก | ✅ | Phase 3 ปิดแล้วหลังทดสอบรับเข้า ปรับลด ตรวจนับ และสแกนบาร์โค้ดจริง; POS ใช้ FEFO/Append-only Ledger เดิม | เฝ้าดูการใช้งานจริง |
-| Storefront POS | 🧪 | Phase 4 เพิ่มค้นชื่อ/SKU/บาร์โค้ด ตะกร้า ส่วนลด Admin เงินสด เงินทอน PromptPay QR ใบรับเงิน และรายการขายล่าสุด | Merge แล้วทดสอบขายจริงบนมือถือ |
-| ประวัติราคา | ✅ | บันทึกราคาเก่า ราคาใหม่ ผู้แก้ และเวลา | เพิ่มหน้าดูประวัติใน Admin |
+| Storefront POS | ✅ | Phase 4 ปิดแล้วหลัง Merge PR #11 และทดสอบขายจริงด้วยเงินสด PromptPay ส่วนลด และสแกนบาร์โค้ด | เฝ้าดูการใช้งานจริง |
+| ประวัติราคา | ✅ | บันทึกราคาเก่า ราคาใหม่ ผู้แก้ และเวลา; Phase 5 แสดง Price Audit บน Dashboard | เฝ้าดูการใช้งานจริง |
 | รายการสินค้า | 🧪 | ค้นหา กรองหมวด และเลือกขนาดก่อนใส่ตะกร้า | เพิ่ม Product Detail เต็มรูปแบบ |
 | ตะกร้า | 🧪 | เก็บใน `localStorage` โดยใช้ `variant_id`; รองรับจำนวนสินค้า | ทดสอบการ Sync DB สำหรับผู้ใช้ Supabase Auth |
 | Checkout | 🧪 | ตรวจราคา/สต็อกในฐานข้อมูล พร้อมเลือกที่อยู่เดิม ที่อยู่ล่าสุด หรือบันทึกที่อยู่ใหม่พร้อม GPS | ทดสอบออเดอร์จริงทั้ง 3 วิธีชำระและการอนุญาต GPS บน LINE |
@@ -106,7 +106,7 @@
 | สลิปชำระเงิน | 🧪 | Bucket `payment-slips` เป็น Private รองรับ JPG/PNG/WebP ไม่เกิน 5 MB | เพิ่มบีบอัดสลิปก่อนอัปโหลด |
 | ประวัติคำสั่งซื้อ | 🧪 | ลูกค้าดูออเดอร์ ยอดค้างชำระ ยอดคงเหลือ และประวัติรับชำระของตนผ่าน LIFF API | ทดสอบกับรายการค้างชำระจริง |
 | Admin Orders | ✅ | Phase 2 ปิดแล้ว: ตรวจสลิป สถานะ จัดส่ง Timeline คืนสต็อก และ LINE แจ้งลูกค้า | เฝ้าดูการใช้งานจริง |
-| Dashboard | 🚧 | มีหน้า Admin พื้นฐาน | เพิ่มยอดขายรายวัน/เดือน/ปีและสินค้าขายดี |
+| Dashboard | 🧪 | Phase 5 เพิ่มยอดวันนี้/เดือน/ปี กราฟ 7/30/90/365 วัน แยก Online/POS วิธีชำระ สถานะ สินค้าขายดี สต็อกต่ำ และประวัติราคา | Merge แล้วทดสอบกับรายการขายจริงที่ Payment เป็น `confirmed` |
 | สมาชิก/ลูกค้า | 🧪 | PR #6 อยู่ใน `main`; Customer Center แสดงประวัติซื้อ ที่อยู่ GPS ปุ่มนำทาง บัญชีค้างชำระ และรับชำระบางส่วน | ทดสอบข้อมูลจริงบนมือถือและสร้างหนี้ทดสอบที่ควบคุมได้ 1 รายการ |
 | คูปอง | 🚧 | ฐานข้อมูลและ validation ฝั่ง DB พร้อม; มี `WELCOME10` | เพิ่มหน้า Admin จัดการคูปอง |
 | รีวิว | 🚧 | ตารางและ RLS พร้อม ตรวจสิทธิ์จากออเดอร์ที่เสร็จแล้ว | สร้าง UI รีวิวและค่าเฉลี่ยดาว |
@@ -221,6 +221,18 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 4 สิงหาคม 2026 — Phase 5 Sales Analytics Dashboard
+
+- ยืนยันปิด Phase 4 หลัง Merge PR #11 และทดสอบขายจริงด้วยเงินสด PromptPay ส่วนลด และสแกนบาร์โค้ดสำเร็จ
+- เพิ่มหน้า `admin/dashboard.html` แบบ Mobile-first และเพิ่ม Dashboard ในเมนูหลัก/PWA Shortcut
+- เพิ่ม KPI ยอดขายวันนี้ เดือนนี้ ปีนี้ จำนวนรายการ ค่าเฉลี่ยต่อรายการ และส่วนลด
+- เพิ่มกราฟรายวันช่วง 7/30/90/365 วัน พร้อมแยก Online และ POS
+- เพิ่มรายงานวิธีชำระ สถานะออเดอร์ สินค้าขายดี สินค้าใกล้หมด ประวัติราคา และรายการรับเงินล่าสุด
+- เพิ่ม RPC `admin_sales_dashboard` ที่นับเฉพาะ Payment สถานะ `confirmed`, ไม่รวมออเดอร์ยกเลิก และใช้เขตเวลา `Asia/Bangkok`
+- ใช้ `SECURITY INVOKER` + RLS + การตรวจ Admin และถอนสิทธิ์ `anon`
+- Deploy Migration `sales_analytics_dashboard` บน Supabase Production
+- PostgreSQL Dry Run, Admin/Non-admin Smoke Test และ Automated Tests ผ่าน; ไม่มีข้อมูลทดสอบถูกสร้าง
 
 ### 4 สิงหาคม 2026 — Phase 4 Storefront POS
 
@@ -434,12 +446,12 @@ Commit หรือ PR ที่แก้:
 
 ### Priority 3 — Dashboard และรายงาน
 
-- [ ] ยอดขายวันนี้/เดือนนี้/ปีนี้
-- [ ] จำนวนออเดอร์ตามสถานะ
-- [ ] สินค้าขายดี
+- [x] ยอดขายวันนี้/เดือนนี้/ปีนี้
+- [x] จำนวนออเดอร์ตามสถานะ
+- [x] สินค้าขายดี
 - [x] สินค้าใกล้หมด/หมด
 - [x] ประวัติรับเข้าและปรับสต็อก
-- [ ] ประวัติการเปลี่ยนราคา
+- [x] ประวัติการเปลี่ยนราคา
 
 ### Priority 4 — ฟีเจอร์เสริม
 
@@ -467,6 +479,7 @@ Commit หรือ PR ที่แก้:
 | ประวัติออเดอร์ลูกค้า/ยอดค้าง | `orders.html`, `js/orders.js` |
 | Admin สินค้า/บาร์โค้ด | `admin/products.html`, `js/admin-products.js`, `js/barcode.js` |
 | Admin ขายหน้าร้าน POS | `admin/pos.html`, `js/admin-pos.js`, `js/promptpay.js`, `css/admin-pos.css` |
+| Admin Dashboard/รายงาน | `admin/dashboard.html`, `js/admin-dashboard.js`, `css/admin-dashboard.css` |
 | Admin สต็อก | `admin/inventory.html`, `js/admin-inventory.js`, `css/admin-inventory.css` |
 | Admin ลูกค้า | `admin/members.html`, `js/admin-members.js`, `css/admin-members.css` |
 | Admin ออเดอร์ | `admin/orders.html`, `js/admin-orders.js` |
@@ -477,6 +490,7 @@ Commit หรือ PR ที่แก้:
 | การตั้งค่า Frontend | `js/config.js`, `js/supabaseClient.js`, `js/liffClient.js` |
 | Barcode tests | `tests/barcode.test.mjs` |
 | POS tests | `tests/pos.test.mjs` |
+| Dashboard tests | `tests/dashboard.test.mjs` |
 
 ### หลักการ Deploy
 
