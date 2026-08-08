@@ -3,9 +3,9 @@
 เอกสารนี้เป็นจุดอ้างอิงกลางสำหรับติดตามสถานะของโปรเจกต์ **ร้านชำเจ๊ดี / FreshMart**  
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
-> อัปเดตล่าสุด: 4 สิงหาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–9 ปิดแล้ว; Phase 10 Customer Notes & Labels พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบจริง**
-> จุดอ้างอิง GitHub: `main@19214b2fe673edc83e35c28575024b8ac8ff86af`
+> อัปเดตล่าสุด: 8 สิงหาคม 2026
+> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–10 ปิดแล้ว; Phase 11 Repeat Purchase Insights พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบจริง**
+> จุดอ้างอิง GitHub: `main@fe21625f74996860ddd382db2b009fc3ae1b9935`
 
 ---
 
@@ -15,13 +15,13 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `19214b2fe673edc83e35c28575024b8ac8ff86af` จาก PR #16 (Phase 9) |
-| Branch งานปัจจุบัน | `agent/phase-10-customer-notes-labels` — หมายเหตุและป้ายกำกับภายในสำหรับ Admin |
-| GitHub Pages | Phase 1–9 อยู่ใน `main`; หน้า Phase 10 รอ Merge |
-| Supabase Backend | Migration `customer_notes_labels`, `customer_notes_labels_tuning` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
+| GitHub `main` | Merge commit ล่าสุด `fe21625f74996860ddd382db2b009fc3ae1b9935` จาก PR #17 (Phase 10) |
+| Branch งานปัจจุบัน | `agent/phase-11-repeat-purchase-insights` — วิเคราะห์สินค้าซื้อบ่อยและวันที่เสนอขายซ้ำ |
+| GitHub Pages | Phase 1–10 อยู่ใน `main`; หน้า Phase 11 รอ Merge |
+| Supabase Backend | Migration `repeat_purchase_insights`, `repeat_purchase_insights_tuning` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
-| งานแรกที่ควรทำ | ทดสอบ Phase 10: บันทึกหมายเหตุ เพิ่ม/ลบป้าย กรองรายชื่อ และตรวจ Audit History ด้วยบัญชี Admin |
+| งานแรกที่ควรทำ | ทดสอบ Phase 11: เปิด Customer Center ตรวจสินค้า Variant รอบซื้อ วันที่แนะนำ และตัวกรองถึงกำหนดเสนอขายซ้ำ |
 
 ### ข้อกำหนดที่ห้ามเปลี่ยนโดยไม่ทบทวน PRD
 
@@ -78,10 +78,10 @@
 
 | โมดูล | สถานะ | รายละเอียดล่าสุด | งานที่ยังเหลือ |
 |---|---:|---|---|
-| GitHub Pages | 🧪 | Phase 1–9 อยู่ใน `main`; Phase 10 รอ Merge | ตรวจ Customer Center หลัง Deploy |
+| GitHub Pages | 🧪 | Phase 1–10 อยู่ใน `main`; Phase 11 รอ Merge | ตรวจ Repeat Purchase Insights หลัง Deploy |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
-| FreshMart Admin PWA | 🧪 | Phase 10 อัปเดต App Shell v10 และเพิ่ม Customer Center ใน Shortcut | ทดสอบอัปเดต Service Worker บนอุปกรณ์จริง |
+| FreshMart Admin PWA | 🧪 | Phase 11 อัปเดต App Shell v11 และ Customer Center แสดงโอกาสเสนอขายซ้ำ | ทดสอบอัปเดต Service Worker บนอุปกรณ์จริง |
 | LINE LIFF | 🧪 | บังคับลูกค้าเข้าใช้งานผ่าน LIFF และใช้ LIFF ID ที่แก้ไขแล้ว | ทดสอบ Android/iOS และกรณีเปิดนอก LINE |
 | โปรไฟล์ LINE | 🧪 | ดึงชื่อและรูปโปรไฟล์ พร้อมบันทึกประวัติลูกค้า | เบอร์โทรไม่สามารถดึงจาก LIFF Profile โดยตรง ต้องให้ลูกค้ากรอก/ยืนยัน |
 | Supabase Auth | ✅ | ใช้ Email/Password สำหรับผู้ดูแลระบบ | เปิด Leaked Password Protection เมื่อแผน/การตั้งค่ารองรับ |
@@ -107,7 +107,7 @@
 | ประวัติคำสั่งซื้อ | 🧪 | ลูกค้าดูออเดอร์ ยอดค้างชำระ ยอดคงเหลือ และประวัติรับชำระของตนผ่าน LIFF API | ทดสอบกับรายการค้างชำระจริง |
 | Admin Orders | ✅ | Phase 2 ปิดแล้ว: ตรวจสลิป สถานะ จัดส่ง Timeline คืนสต็อก และ LINE แจ้งลูกค้า | เฝ้าดูการใช้งานจริง |
 | Dashboard | ✅ | Phase 5 ปิดแล้วหลัง Merge PR #12 และทดสอบยอดวันนี้ กราฟ ช่องทางขาย และสินค้าขายดีด้วยรายการ POS จริง | เฝ้าดูการใช้งานจริง |
-| สมาชิก/ลูกค้า | 🧪 | Phase 9 เพิ่ม Saved Addresses; Phase 10 เพิ่มหมายเหตุภายใน ป้ายกำกับ ค้นหา กรอง และ Audit History ใน Customer Center | ทดสอบหน้า Admin จริงและหน้า Saved Addresses บน LINE Android/iOS |
+| สมาชิก/ลูกค้า | 🧪 | Phase 9 เพิ่ม Saved Addresses; Phase 10 เพิ่มหมายเหตุ/ป้าย; Phase 11 เพิ่มสินค้า Variant ที่ซื้อบ่อย รอบซื้อ และวันที่เสนอขายซ้ำ | ทดสอบกับลูกค้าที่ซื้อ Variant เดิมสำเร็จอย่างน้อย 2 วัน |
 | คูปอง | 🧪 | Phase 7 ปิดแล้ว; Phase 8 เพิ่ม Preview แบบ Server-authoritative โดยไม่เพิ่ม `used_count` และแสดงเงื่อนไขก่อนยืนยัน | ทดสอบยอดต่ำกว่า/เท่ากับ/สูงกว่า 200 บาท |
 | รีวิว | ✅ | Phase 6 ปิดแล้วหลัง Merge PR #13 และทดสอบเพิ่ม แก้ไข ลบ พร้อมคะแนนเฉลี่ยจากออเดอร์ `completed` ผ่าน LINE LIFF | เฝ้าดูการใช้งานจริง |
 | LINE แจ้งเตือน Admin | 🧪 | Edge Function รองรับส่งส่วนตัวและกลุ่มผ่าน Messaging API | ทดสอบ Token/User ID/Group ID จริงทุกปลายทาง |
@@ -222,6 +222,19 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 8 สิงหาคม 2026 — Phase 11 Repeat Purchase Insights
+
+- ยืนยันปิด Phase 10 หลัง Merge PR #17
+- เพิ่ม RPC แบบ Admin-only วิเคราะห์สินค้าและ Variant จากออเดอร์ `paid`, `preparing`, `shipped`, `completed`
+- รวมหลายออเดอร์ในวันเดียวเป็นหนึ่งวันซื้อ ตาม Timezone `Asia/Bangkok`
+- แสดงจำนวนวันซื้อ จำนวนชิ้น วันที่ซื้อล่าสุด ช่วงห่างเฉลี่ย และวันที่แนะนำให้เสนอขายซ้ำ
+- เพิ่ม KPI และตัวกรองลูกค้าที่ถึงกำหนดเสนอขายซ้ำ พร้อมสถานะถึงกำหนด/ใกล้ถึงกำหนด/รอข้อมูล
+- เพิ่ม Partial Index สำหรับออเดอร์ลูกค้าที่ใช้วิเคราะห์ และจำกัดผลสูงสุด 5 สินค้าต่อลูกค้าในหน้าเว็บ
+- RPC ใช้ `SECURITY INVOKER`, ตรวจ Admin, ไม่เปิดให้ `anon`/`service_role` และไม่ส่งข้อมูลไป LINE LIFF
+- อัปเดต Admin PWA App Shell เป็น v11
+- Deploy Migration `repeat_purchase_insights` และ `repeat_purchase_insights_tuning` บน Supabase Production
+- PostgreSQL Dry Run, Production Smoke Test, Admin/Non-admin/Anonymous ACL Check และ Automated Tests ผ่าน 78/78
 
 ### 4 สิงหาคม 2026 — Phase 10 Customer Notes & Labels
 
@@ -522,7 +535,7 @@ Commit หรือ PR ที่แก้:
 - [x] Realtime Order Status
 - [x] UI ให้ลูกค้าแก้ไข/ลบ/ตั้งที่อยู่เริ่มต้น
 - [x] หมายเหตุและป้ายกำกับลูกค้า เช่น ลูกค้าประจำ, VIP, ร้านอาหาร
-- [ ] วิเคราะห์สินค้าที่ลูกค้าซื้อบ่อยและวันที่เหมาะสำหรับเสนอขายซ้ำ
+- [x] วิเคราะห์สินค้าที่ลูกค้าซื้อบ่อยและวันที่เหมาะสำหรับเสนอขายซ้ำ
 - [ ] ระบบคะแนนสะสมหรือส่วนลดเฉพาะลูกค้า
 
 ---
@@ -557,6 +570,7 @@ Commit หรือ PR ที่แก้:
 | Product Detail/Review tests | `tests/product-detail-reviews.test.mjs` |
 | Admin Coupon tests | `tests/admin-coupons.test.mjs` |
 | Customer Address tests | `tests/customer-addresses.test.mjs` |
+| Repeat Purchase Insights tests | `tests/repeat-purchase-insights.test.mjs` |
 
 ### หลักการ Deploy
 

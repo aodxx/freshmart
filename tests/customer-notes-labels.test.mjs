@@ -55,11 +55,11 @@ test('Customer Center supports label search, filtering, internal notes and audit
   assert.match(css, /\.customer-context-history/);
 });
 
-test('Admin PWA v10 caches the updated Customer Center shell', async () => {
+test('Admin PWA v11 caches the updated Customer Center shell', async () => {
   const [worker, manifest] = await Promise.all([
     read('admin/service-worker.js'), read('admin/admin.webmanifest')
   ]);
-  assert.match(worker, /freshmart-admin-shell-v10\.0\.0/);
+  assert.match(worker, /freshmart-admin-shell-v11\.0\.0/);
   assert.match(worker, /\.\/members\.html/);
   assert.match(worker, /admin-members\.(?:css|js)/);
   assert.ok(JSON.parse(manifest).shortcuts.some(shortcut => shortcut.url === './members.html'));
