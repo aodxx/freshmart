@@ -40,6 +40,7 @@ const elements = {
   total: document.querySelector('[data-kpi-total]'),
   newCustomers: document.querySelector('[data-kpi-new]'),
   repeat: document.querySelector('[data-kpi-repeat]'),
+  followup: document.querySelector('[data-kpi-followup]'),
   revenue: document.querySelector('[data-kpi-revenue]'),
   outstanding: document.querySelector('[data-kpi-outstanding]')
 };
@@ -53,6 +54,40 @@ const thaiDate = (value, includeTime = false) => {
     ? { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' }
     : { dateStyle: 'medium', timeZone: 'Asia/Bangkok' };
   return new Intl.DateTimeFormat('th-TH', options).format(new Date(value));
+};
+
+const bangkokDateKey = value => {
+  const date = value ? new Date(value) : new Date();
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(date);
+  const part = type => parts.find(row => row.type === type)?.value;
+  return `${part('year')}-${part('month')}-${part('day')}`;
+};
+
+const dateKeyToDay = value => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ''));
+  return match ? Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])) / 86400000 : null;
+};
+
+const repeatTiming = insight => {
+  const recommendedDay = dateKeyToDay(insight.recommended_reorder_date);
+  if (recommendedDay === null) {
+    return { status: 'insufficient', days: null, label: 'รอข้อมูลซื้อซ้ำ' };
+  }
+  const days = recommendedDay - dateKeyToDay(bangkokDateKey());
+  if (days <= 0) {
+    return {
+      status: 'due',
+      days,
+      label: days < 0 ? `เลยกำหนด ${Math.abs(days).toLocaleString('th-TH')} วัน` : 'ถึงกำหนดวันนี้'
+    };
+  }
+  if (days <= 7) return { status: 'soon', days, label: `อีก ${days.toLocaleString('th-TH')} วัน` };
+  return { status: 'planned', days, label: `อีก ${days.toLocaleString('th-TH')} วัน` };
 };
 
 const safePictureUrl = value => {
@@ -113,7 +148,8 @@ const enrichCustomers = (
   receivablePayments,
   contexts,
   contextAudits,
-  profiles
+  profiles,
+  repeatInsights
 ) => {
   const profileNames = new Map(profiles.map(profile => [profile.id, profile.full_name]));
   const contextByCustomer = new Map(contexts.map(context => [context.customer_id, context]));
@@ -121,6 +157,12 @@ const enrichCustomers = (
     const rows = groups.get(audit.customer_id) || [];
     rows.push({ ...audit, changedByName: profileNames.get(audit.changed_by) || 'ผู้ดูแลระบบ' });
     groups.set(audit.customer_id, rows);
+    return groups;
+  }, new Map());
+  const insightsByCustomer = repeatInsights.reduce((groups, insight) => {
+    const rows = groups.get(insight.customer_id) || [];
+    rows.push({ ...insight, timing: repeatTiming(insight) });
+    groups.set(insight.customer_id, rows);
     return groups;
   }, new Map());
 
@@ -169,7 +211,8 @@ const enrichCustomers = (
         labels: Array.isArray(context.labels) ? context.labels : [],
         updatedByName: profileNames.get(context.updated_by) || 'ผู้ดูแลระบบ'
       },
-      contextHistory: auditsByCustomer.get(customer.id) || []
+      contextHistory: auditsByCustomer.get(customer.id) || [],
+      repeatInsights: insightsByCustomer.get(customer.id) || []
     };
   });
 };
@@ -202,6 +245,9 @@ const updateKpis = () => {
     .filter(customer => isSameMonth(customer.first_seen_at)).length.toLocaleString('th-TH');
   elements.repeat.textContent = state.customers
     .filter(customer => customer.orderCount >= 2).length.toLocaleString('th-TH');
+  elements.followup.textContent = state.customers
+    .filter(customer => customer.repeatInsights.some(insight => insight.timing.status === 'due'))
+    .length.toLocaleString('th-TH');
   elements.revenue.textContent = money(state.customers
     .reduce((sum, customer) => sum + customer.totalSpent, 0));
   elements.outstanding.textContent = money(state.customers
@@ -215,7 +261,8 @@ const filteredCustomers = () => {
       customer.display_name,
       customer.phone,
       customer.context.internal_note,
-      ...customer.context.labels
+      ...customer.context.labels,
+      ...customer.repeatInsights.flatMap(insight => [insight.product_name, insight.variant_name])
     ].some(value => String(value || '').toLocaleLowerCase('th-TH').includes(normalizedQuery));
 
     const matchesSegment = {
@@ -223,6 +270,7 @@ const filteredCustomers = () => {
       no_orders: customer.orderCount === 0 && customer.status !== 'blocked',
       first_order: customer.orderCount === 1 && customer.status !== 'blocked',
       repeat: customer.orderCount >= 2 && customer.status !== 'blocked',
+      repeat_due: customer.repeatInsights.some(insight => insight.timing.status === 'due') && customer.status !== 'blocked',
       outstanding: customer.outstandingTotal > 0,
       blocked: customer.status === 'blocked'
     }[state.segment];
@@ -266,6 +314,9 @@ const renderCustomers = () => {
             ${customer.status === 'blocked' ? 'ระงับ' : 'ใช้งาน'}
           </span>
           ${customer.outstandingTotal > 0 ? '<span class="customer-debt-badge">มีค้างชำระ</span>' : ''}
+          ${customer.repeatInsights.some(insight => insight.timing.status === 'due')
+            ? '<span class="customer-repeat-badge">ถึงรอบซื้อซ้ำ</span>'
+            : ''}
         </div>
         <span class="customer-card__contact">${phoneMarkup(customer)}</span>
         <span class="customer-card__activity">ใช้งานล่าสุด ${thaiDate(customer.last_seen_at, true)}</span>
@@ -392,6 +443,47 @@ const ordersMarkup = customer => {
   }).join('');
 };
 
+const repeatInsightsMarkup = customer => {
+  if (!customer.repeatInsights.length) {
+    return `
+      <div class="customer-repeat-empty">
+        <strong>ยังไม่มีข้อมูลการซื้อที่ใช้วิเคราะห์</strong>
+        <span>ระบบใช้เฉพาะออเดอร์ที่ชำระแล้วหรือดำเนินการสำเร็จ และไม่รวมออเดอร์ยกเลิก</span>
+      </div>`;
+  }
+
+  return `<div class="customer-repeat-grid">${customer.repeatInsights.map(insight => {
+    const interval = insight.average_interval_days === null
+      ? 'ต้องมีอย่างน้อย 2 วันซื้อ'
+      : `เฉลี่ยทุก ${Number(insight.average_interval_days).toLocaleString('th-TH', {
+          maximumFractionDigits: 1
+        })} วัน`;
+    const recommendation = insight.recommended_reorder_date
+      ? thaiDate(`${insight.recommended_reorder_date}T00:00:00+07:00`)
+      : 'ยังคำนวณไม่ได้';
+    return `
+      <article class="customer-repeat-card customer-repeat-card--${escapeHtml(insight.timing.status)}">
+        <div class="customer-repeat-card__head">
+          <div>
+            <strong>${escapeHtml(insight.product_name)}</strong>
+            <span>${escapeHtml(insight.variant_name)}</span>
+          </div>
+          <span class="customer-repeat-status">${escapeHtml(insight.timing.label)}</span>
+        </div>
+        <div class="customer-repeat-card__metrics">
+          <div><small>วันที่ซื้อ</small><strong>${Number(insight.purchase_days).toLocaleString('th-TH')} ครั้ง</strong></div>
+          <div><small>รวมจำนวน</small><strong>${Number(insight.total_quantity).toLocaleString('th-TH')} ชิ้น</strong></div>
+          <div><small>ซื้อล่าสุด</small><strong>${thaiDate(`${insight.last_purchase_date}T00:00:00+07:00`)}</strong></div>
+          <div><small>รอบซื้อ</small><strong>${escapeHtml(interval)}</strong></div>
+        </div>
+        <div class="customer-repeat-card__recommendation">
+          <small>วันที่แนะนำให้เสนอขายซ้ำ</small>
+          <strong>${recommendation}</strong>
+        </div>
+      </article>`;
+  }).join('')}</div>`;
+};
+
 const contextHistoryMarkup = customer => {
   if (!customer.contextHistory.length) {
     return '<div class="customer-context-empty">ยังไม่มีประวัติการแก้ไข</div>';
@@ -498,6 +590,16 @@ function openCustomerDetail(customerId) {
       <div class="customer-detail-metric ${customer.outstandingTotal > 0 ? 'customer-detail-metric--debt' : ''}"><small>ยอดค้างชำระ</small><strong>${money(customer.outstandingTotal)}</strong></div>
       <div class="customer-detail-metric"><small>ที่อยู่ที่บันทึก</small><strong>${customer.addresses.length.toLocaleString('th-TH')} แห่ง</strong></div>
     </div>
+    <section class="customer-detail-section customer-repeat-panel">
+      <div class="customer-repeat-panel__head">
+        <div>
+          <h3>โอกาสเสนอขายซ้ำ</h3>
+          <p>วิเคราะห์สินค้าและ Variant จากวันที่ซื้อสำเร็จตามเวลาไทย</p>
+        </div>
+        <span>Admin only</span>
+      </div>
+      ${repeatInsightsMarkup(customer)}
+    </section>
     ${customerContextMarkup(customer)}
     <section class="customer-detail-section">
       <h3>ข้อมูลการใช้งาน</h3>
@@ -708,7 +810,8 @@ async function loadCustomers(reopenId = null) {
     paymentResult,
     contextResult,
     contextAuditResult,
-    profileResult
+    profileResult,
+    repeatInsightResult
   ] =
     await Promise.all([
       supabase.from('customers')
@@ -733,14 +836,17 @@ async function loadCustomers(reopenId = null) {
         .select('id,customer_id,action,old_labels,new_labels,old_note,new_note,changed_by,changed_at')
         .order('changed_at', { ascending: false }),
       supabase.from('profiles')
-        .select('id,full_name')
+        .select('id,full_name'),
+      supabase.rpc('admin_customer_repeat_purchase_insights', {
+        p_limit_per_customer: 5
+      })
     ]);
 
   elements.refresh.disabled = false;
   elements.refresh.classList.remove('is-loading');
   const firstError = customerResult.error || addressResult.error || orderResult.error ||
     receivableResult.error || paymentResult.error || contextResult.error ||
-    contextAuditResult.error || profileResult.error;
+    contextAuditResult.error || profileResult.error || repeatInsightResult.error;
   if (firstError) {
     elements.list.innerHTML = `
       <div class="customer-empty">
@@ -759,7 +865,8 @@ async function loadCustomers(reopenId = null) {
     paymentResult.data || [],
     contextResult.data || [],
     contextAuditResult.data || [],
-    profileResult.data || []
+    profileResult.data || [],
+    repeatInsightResult.data || []
   );
   renderLabelFilterOptions();
   updateKpis();

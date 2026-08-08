@@ -38,7 +38,7 @@
       <div>
         <span class="customer-page-head__eyebrow">Customer Center</span>
         <h1>ลูกค้าและสมาชิก</h1>
-        <p>ดูข้อมูลจาก LINE LIFF ประวัติการซื้อ หมายเหตุ และป้ายกำกับภายในในหน้าเดียว</p>
+        <p>ดูข้อมูลจาก LINE LIFF ประวัติการซื้อ โอกาสเสนอขายซ้ำ หมายเหตุ และป้ายกำกับภายในในหน้าเดียว</p>
       </div>
       <button class="btn btn-outline-primary" type="button" data-refresh-customers>
         <span aria-hidden="true">↻</span> อัปเดตข้อมูล
@@ -64,6 +64,12 @@
         <strong data-kpi-repeat>—</strong>
         <small>ตั้งแต่ 2 ออเดอร์ขึ้นไป</small>
       </article>
+      <article class="customer-kpi customer-kpi--rose">
+        <span class="customer-kpi__icon" aria-hidden="true">🎯</span>
+        <span class="customer-kpi__label">ควรเสนอขายซ้ำ</span>
+        <strong data-kpi-followup>—</strong>
+        <small>ถึงวันที่แนะนำแล้ว</small>
+      </article>
       <article class="customer-kpi customer-kpi--coral">
         <span class="customer-kpi__icon" aria-hidden="true">฿</span>
         <span class="customer-kpi__label">ยอดซื้อสะสม</span>
@@ -88,6 +94,7 @@
         <option value="no_orders">ยังไม่เคยซื้อ</option>
         <option value="first_order">ซื้อ 1 ครั้ง</option>
         <option value="repeat">ซื้อซ้ำ</option>
+        <option value="repeat_due">ถึงกำหนดเสนอขายซ้ำ</option>
         <option value="outstanding">มีค้างชำระ</option>
         <option value="blocked">ถูกระงับ</option>
       </select>
