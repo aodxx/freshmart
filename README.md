@@ -24,6 +24,25 @@
 - Supabase PostgreSQL, Auth, Storage, Edge Functions
 - GitHub Pages
 
+## เริ่มพัฒนาต่อ
+
+ต้องมี Git และ Node.js 20 ขึ้นไป จากนั้นรัน:
+
+```bash
+git clone https://github.com/aodxx/freshmart.git
+cd freshmart
+npm run check
+npm run dev
+```
+
+เปิดหน้าร้านที่ <http://127.0.0.1:4173/> หรือ Admin PWA ที่
+<http://127.0.0.1:4173/admin/> โปรเจกต์ไม่มี package dependency จึงไม่ต้องรัน `npm install`
+สำหรับการเปิดเว็บและรัน test
+
+- [คู่มือเริ่มพัฒนาและสถาปัตยกรรม](docs/DEVELOPMENT.md)
+- [แนวทางร่วมพัฒนาและ Definition of Done](CONTRIBUTING.md)
+- [สถานะล่าสุด บั๊ก และงานลำดับถัดไป](PROGRESS.md)
+
 ## Database
 
 รัน migrations ตามลำดับใน `supabase/migrations/` ฐานข้อมูลจริงได้รับ migrations เหล่านี้แล้ว
