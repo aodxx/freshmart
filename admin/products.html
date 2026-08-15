@@ -176,9 +176,14 @@
           <label class="form-label" for="catalog-file">เลือกไฟล์ Dataset</label>
           <input id="catalog-file" class="form-control" type="file"
             accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" data-catalog-file>
-          <div class="form-check form-switch mt-3">
-            <input class="form-check-input" type="checkbox" role="switch" id="thai-prefix-only" checked data-thai-prefix-only>
-            <label class="form-check-label" for="thai-prefix-only">นำเข้าเฉพาะบาร์โค้ดขึ้นต้น 885</label>
+          <div class="mt-3">
+            <label class="form-label" for="catalog-market-filter">ขอบเขตสินค้าที่จะนำเข้า</label>
+            <select class="form-select" id="catalog-market-filter" data-catalog-market-filter>
+              <option value="thailand" selected>สินค้าที่ระบุว่าจำหน่าย/เกี่ยวข้องกับประเทศไทย หรือ barcode 885</option>
+              <option value="prefix885">เฉพาะ barcode ขึ้นต้น 885</option>
+              <option value="all">สินค้าทั้งหมดในไฟล์</option>
+            </select>
+            <div class="form-text">ระบบจะอ่านฟิลด์ countries/countries_en/countries_tags จากไฟล์ก่อน ไม่ใช้ 885 เป็นหลักฐานประเทศผลิต</div>
           </div>
           <div class="import-progress d-none mt-4" data-import-progress>
             <div class="d-flex justify-content-between small mb-1">
