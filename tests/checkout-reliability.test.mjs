@@ -21,6 +21,13 @@ test('database migration serializes duplicate LIFF checkout requests', async () 
   assert.match(migration, /place_liff_order_v3/);
 });
 
+test('backend rollout preserves checkout for an already deployed client', async () => {
+  const edge = await read('supabase/functions/liff-api/index.ts');
+  assert.match(edge, /payload\.checkout_request_id\s*\?\s*requestId/);
+  assert.match(edge, /const rpcName = checkoutRequestId \? "place_liff_order_v3" : "place_liff_order_v2"/);
+  assert.match(edge, /\.\.\.\(checkoutRequestId \? \{ p_checkout_request_id: checkoutRequestId \} : \{\}\)/);
+});
+
 test('LIFF API notifies transfer orders only after a slip is persisted', async () => {
   const edge = await read('supabase/functions/liff-api/index.ts');
   assert.match(edge, /select\("id,status,slip_path"\)\.single\(\)/);

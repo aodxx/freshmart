@@ -288,8 +288,11 @@ Deno.serve(async (req: Request) => {
       if ((latitude === null) !== (longitude === null)) {
         throw new Error("INVALID_GPS_PAIR");
       }
-      const checkoutRequestId = requestId(payload.checkout_request_id);
-      const { data: orderId, error } = await admin.rpc("place_liff_order_v3", {
+      const checkoutRequestId = payload.checkout_request_id
+        ? requestId(payload.checkout_request_id)
+        : null;
+      const rpcName = checkoutRequestId ? "place_liff_order_v3" : "place_liff_order_v2";
+      const rpcPayload = {
         p_customer_id: customer.id,
         p_items: payload.items,
         p_fulfillment_method: payload.fulfillment_method,
@@ -306,8 +309,9 @@ Deno.serve(async (req: Request) => {
         p_delivery_location_source: payload.delivery_location_source || null,
         p_save_address: Boolean(payload.save_address),
         p_address_label: String(payload.address_label || "บ้าน").slice(0, 40),
-        p_checkout_request_id: checkoutRequestId,
-      });
+        ...(checkoutRequestId ? { p_checkout_request_id: checkoutRequestId } : {}),
+      };
+      const { data: orderId, error } = await admin.rpc(rpcName, rpcPayload);
       if (error) throw error;
       const { data: order } = await admin.from("orders")
         .select(
