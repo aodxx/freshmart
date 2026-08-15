@@ -19,6 +19,7 @@ const couponButton = document.querySelector('[data-apply-coupon]');
 const couponFeedback = document.querySelector('[data-coupon-feedback]');
 const couponDiscountRow = document.querySelector('[data-checkout-discount-row]');
 const couponDiscountValue = document.querySelector('[data-checkout-discount]');
+const CHECKOUT_REQUEST_KEY = 'freshmart_checkout_request_id';
 
 let liffState;
 let couponState = { code: '', valid: false, discount: 0 };
@@ -38,6 +39,19 @@ const coordinate = value => {
 
 const mapsUrl = (latitude, longitude) =>
   `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${latitude},${longitude}`)}`;
+
+function getCheckoutRequestId() {
+  let id = sessionStorage.getItem(CHECKOUT_REQUEST_KEY);
+  if (!/^[0-9a-f-]{36}$/i.test(id || '')) {
+    id = crypto.randomUUID();
+    sessionStorage.setItem(CHECKOUT_REQUEST_KEY, id);
+  }
+  return id;
+}
+
+function completeCheckoutRequest() {
+  sessionStorage.removeItem(CHECKOUT_REQUEST_KEY);
+}
 
 function renderGpsState() {
   const hasGps = deliveryState.latitude !== null && deliveryState.longitude !== null;
@@ -287,8 +301,11 @@ form?.addEventListener('submit', async event => {
     if (String(values.coupon_code || '').trim()) {
       await validateCoupon({ throwOnInvalid: true });
     }
+
+    const checkoutRequestId = getCheckoutRequestId();
     const result = await liffApi('place_order', {
       order: {
+        checkout_request_id: checkoutRequestId,
         items: getCart().map(item => ({ variant_id: item.variant_id, quantity: item.quantity })),
         fulfillment_method: fulfillment,
         payment_method: payment,
@@ -306,8 +323,12 @@ form?.addEventListener('submit', async event => {
         address_label: addressLabelField.value || 'บ้าน'
       }
     });
+
+    // Keep the same request id when slip upload fails so retrying cannot duplicate the order.
     if (slip) await uploadSlip(result.order.id, slip);
     clearCart();
+    completeCheckoutRequest();
+
     if (payment === 'cash') {
       await Swal.fire({
         icon: 'success',
