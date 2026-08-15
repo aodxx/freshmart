@@ -179,8 +179,10 @@ function openForm(product = null, seed = null) {
   form.current_image_path.value = product?.image_path || '';
   form.external_image_url.value = product?.image_url || seed?.image_url || '';
   form.source_product_url.value = product?.source_product_url || seed?.source_url || '';
-  form.category_id.innerHTML = categories.map(c =>
-    `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  form.category_id.innerHTML = [
+    '<option value="" selected disabled>เลือกหมวดหมู่สินค้า</option>',
+    ...categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
+  ].join('');
   if (product) {
     form.category_id.value = product.category_id || '';
     form.name.value = product.name;
@@ -190,11 +192,6 @@ function openForm(product = null, seed = null) {
     form.is_active.value = String(product.is_active);
     product.variants.forEach(addVariantRow);
   } else if (seed) {
-    const matchedCategory = categories.find(category => {
-      const sourceCategory = String(seed.category_name || '').toLowerCase();
-      return sourceCategory.includes(category.name.toLowerCase());
-    });
-    if (matchedCategory) form.category_id.value = matchedCategory.id;
     form.name.value = seed.name || '';
     form.brand.value = seed.brand || '';
     form.data_source.value = seed.source || 'open_food_facts';
@@ -274,6 +271,8 @@ form.addEventListener('submit', async event => {
   button.disabled = true;
   try {
     const variants = readVariants();
+    const categoryId = form.category_id.value;
+    if (!categoryId) throw new Error('กรุณาเลือกหมวดหมู่ก่อนบันทึกสินค้า');
     if (!variants.length || variants.some(v => !v.variant_name || v.price < 0 || v.stock_qty < 0)) {
       throw new Error('กรุณากรอกขนาด ราคา และสต็อกให้ครบ');
     }
@@ -288,7 +287,7 @@ form.addEventListener('submit', async event => {
       throw new Error('บาร์โค้ดของแต่ละขนาดต้องไม่ซ้ำกัน');
     }
     const payload = {
-      category_id: form.category_id.value,
+      category_id: categoryId,
       name: form.name.value.trim(),
       brand: form.brand.value.trim() || null,
       description: form.description.value.trim(),
