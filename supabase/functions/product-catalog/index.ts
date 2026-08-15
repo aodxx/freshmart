@@ -3,8 +3,10 @@ import { createClient } from "@supabase/supabase-js";
 
 const ALLOWED_ORIGIN = "https://aodxx.github.io";
 const OPEN_FOOD_FACTS_API = "https://world.openfoodfacts.org/api/v3.6/product";
+const OPEN_FOOD_FACTS_SEARCH_API = "https://world.openfoodfacts.net/cgi/search.pl";
 const USER_AGENT = "FreshMart/1.0 (https://github.com/aodxx/freshmart)";
 const MAX_IMPORT_ROWS = 200;
+const MAX_SEARCH_RESULTS = 24;
 
 const cors = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
@@ -70,6 +72,23 @@ function firstText(value: unknown) {
 
 function firstNonEmpty(...values: unknown[]) {
   return values.map((value) => String(value ?? "").trim()).find(Boolean) || "";
+}
+
+function normalizeSearchText(value: unknown) {
+  return String(value ?? "")
+    .normalize("NFKC")
+    .toLocaleLowerCase("th-TH")
+    .replace(/[^\p{L}\p{M}\p{N}]+/gu, "");
+}
+
+function hasThailandCountrySignal(input: Record<string, unknown>) {
+  const value = [
+    input.countries,
+    input.countries_en,
+    input.countries_th,
+    input.countries_tags,
+  ].flatMap((item) => Array.isArray(item) ? item : [item]).join(" ").toLocaleLowerCase("th-TH");
+  return /thailand|ประเทศไทย|en:thailand/.test(value);
 }
 
 function normalizeCatalogRow(input: Record<string, unknown>) {
@@ -181,6 +200,93 @@ async function lookupOpenFoodFacts(barcode: string) {
   return data;
 }
 
+function formatSearchResult(row: Record<string, unknown>, match: "catalog" | "open_food_facts") {
+  const normalized = normalizeCatalogRow({
+    ...row,
+    barcode: row.barcode ?? row.code,
+    raw_data: row,
+  });
+  return { ...normalized, match };
+}
+
+function matchesSearchQuery(row: Record<string, unknown>, query: string) {
+  const searchable = [
+    row.name,
+    row.product_name,
+    row.product_name_th,
+    row.brand,
+    row.brands,
+    row.category_name,
+    row.categories,
+    row.quantity_label,
+    row.quantity,
+    row.code,
+    row.barcode,
+  ].map(normalizeSearchText).join(" ");
+  return searchable.includes(normalizeSearchText(query));
+}
+
+async function searchOpenFoodFacts(query: string) {
+  const fields = [
+    "code",
+    "product_name",
+    "product_name_th",
+    "brands",
+    "image_front_url",
+    "image_url",
+    "categories",
+    "quantity",
+    "countries",
+    "countries_en",
+    "countries_tags",
+    "last_modified_t",
+  ].join(",");
+  const params = new URLSearchParams({
+    search_terms: query,
+    search_simple: "1",
+    action: "process",
+    json: "1",
+    page_size: String(MAX_SEARCH_RESULTS),
+    countries_tags_en: "Thailand",
+    fields,
+  });
+  const response = await fetch(`${OPEN_FOOD_FACTS_SEARCH_API}?${params}`, {
+    headers: { "User-Agent": USER_AGENT, "Accept": "application/json" },
+  });
+  if (!response.ok) throw new Error("OPEN_FOOD_FACTS_SEARCH_UNAVAILABLE");
+  const payload = await response.json();
+  return (Array.isArray(payload.products) ? payload.products : [])
+    .filter((row) => row && hasThailandCountrySignal(row))
+    .filter((row) => firstNonEmpty(row.product_name_th, row.product_name))
+    .filter((row) => matchesSearchQuery(row, query))
+    .map((row) => formatSearchResult(row, "open_food_facts"));
+}
+
+async function searchCatalog(queryValue: unknown) {
+  const query = String(queryValue ?? "").trim().slice(0, 100);
+  if (normalizeSearchText(query).length < 2) throw new Error("SEARCH_QUERY_TOO_SHORT");
+
+  const localTerm = query.replace(/[,%()]/g, " ").trim();
+  const { data: localRows, error } = await admin
+    .from("open_product_catalog")
+    .select("barcode,name,brand,image_url,category_name,quantity_label,source,source_url,source_updated_at,raw_data")
+    .or(`name.ilike.%${localTerm}%,brand.ilike.%${localTerm}%,category_name.ilike.%${localTerm}%`)
+    .limit(MAX_SEARCH_RESULTS);
+  if (error) throw error;
+
+  const localResults = (localRows || [])
+    .filter((row) => matchesSearchQuery(row, query))
+    .map((row) => ({ ...row, match: "catalog" as const }));
+  const localBarcodes = new Set(localResults.map((row) => row.barcode));
+  const externalResults = await searchOpenFoodFacts(query);
+  const results = [
+    ...localResults,
+    ...externalResults.filter((row) => !localBarcodes.has(row.barcode)),
+  ].slice(0, MAX_SEARCH_RESULTS);
+
+  return { query, results };
+}
+
 async function lookup(barcodeValue: unknown) {
   const barcode = requireValidBarcode(barcodeValue);
   const storeProduct = await lookupInStore(barcode);
@@ -239,6 +345,9 @@ Deno.serve(async (req: Request) => {
 
     if (action === "lookup") {
       return json({ success: true, ...(await lookup(body.barcode)) });
+    }
+    if (action === "search") {
+      return json({ success: true, ...(await searchCatalog(body.query)) });
     }
     if (action === "import") {
       return json({ success: true, ...(await importRows(body.products)) });
