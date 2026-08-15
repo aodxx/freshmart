@@ -1,6 +1,7 @@
 import { supabase, money, toast, productImageUrl, escapeHtml } from './supabaseClient.js';
 import { addToCart } from './cart.js';
 import { initLiff } from './liffClient.js';
+import { searchProducts } from './product-search.js';
 
 const grid = document.querySelector('[data-products]');
 const search = document.querySelector('[data-search]');
@@ -9,19 +10,9 @@ let products = [];
 
 const render = () => {
   if (!grid) return;
-  const term = (search?.value || '').toLowerCase();
+  const term = search?.value || '';
   const selected = category?.value || '';
-  const rows = products.filter(p => {
-    const searchable = [
-      p.name,
-      p.brand,
-      p.description,
-      p.category_name,
-      ...(p.variants || []).flatMap(v => [v.name, v.variant_name, v.barcode])
-    ].filter(Boolean).join(' ').toLocaleLowerCase('th-TH');
-    return (!term || searchable.includes(term)) &&
-      (!selected || p.category_slug === selected);
-  });
+  const rows = searchProducts(products, term, selected);
   grid.innerHTML = rows.length ? rows.map(p => `
     <div class="col-6 col-lg-3">
       <article class="card product-card h-100 border-0">
