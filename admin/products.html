@@ -65,8 +65,9 @@
             <input type="hidden" name="source_product_url">
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label">หมวดหมู่</label>
-                <select class="form-select" name="category_id" required></select>
+                <label class="form-label">หมวดหมู่ <span class="text-danger" aria-hidden="true">*</span></label>
+                <select class="form-select" name="category_id" required aria-describedby="category-help"></select>
+                <div id="category-help" class="form-text">เลือกหมวดของร้านก่อนบันทึกสินค้า ระบบจะไม่ใช้หมวดจากแหล่งอ้างอิงแทน</div>
               </div>
               <div class="col-md-6">
                 <label class="form-label">สถานะ</label>
