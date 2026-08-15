@@ -1,6 +1,25 @@
-.DS_Store
+# Secrets and machine-local configuration
 .env
 .env.*
 !.env.example
+
+# Dependencies and generated output
 node_modules/
 .supabase/
+coverage/
+dist/
+
+# Logs, caches and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+.cache/
+
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

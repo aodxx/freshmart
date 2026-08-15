@@ -3,9 +3,9 @@
 เอกสารนี้เป็นจุดอ้างอิงกลางสำหรับติดตามสถานะของโปรเจกต์ **ร้านชำเจ๊ดี / FreshMart**  
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
-> อัปเดตล่าสุด: 8 สิงหาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–10 ปิดแล้ว; Phase 11 Repeat Purchase Insights พัฒนาและ Deploy Backend แล้ว รอ Merge/ทดสอบจริง**
-> จุดอ้างอิง GitHub: `main@fe21625f74996860ddd382db2b009fc3ae1b9935`
+> อัปเดตล่าสุด: 14 สิงหาคม 2026
+> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–11 Merge เข้า `main` แล้ว; รอทดสอบ Repeat Purchase Insights และเส้นทางสั่งซื้อจริงบนอุปกรณ์**
+> จุดอ้างอิง GitHub: `main@549cdd8` (PR #18)
 
 ---
 
@@ -15,9 +15,9 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `fe21625f74996860ddd382db2b009fc3ae1b9935` จาก PR #17 (Phase 10) |
-| Branch งานปัจจุบัน | `agent/phase-11-repeat-purchase-insights` — วิเคราะห์สินค้าซื้อบ่อยและวันที่เสนอขายซ้ำ |
-| GitHub Pages | Phase 1–10 อยู่ใน `main`; หน้า Phase 11 รอ Merge |
+| GitHub `main` | Merge commit ล่าสุด `549cdd8` จาก PR #18 (Phase 11) |
+| Branch งานปัจจุบัน | `agent/developer-ready-cleanup` — จัด onboarding, คำสั่งตรวจสอบ และกติกาความสะอาด repository |
+| GitHub Pages | Phase 1–11 อยู่ใน `main`; รอทดสอบ Repeat Purchase Insights บนอุปกรณ์จริง |
 | Supabase Backend | Migration `repeat_purchase_insights`, `repeat_purchase_insights_tuning` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
@@ -78,7 +78,7 @@
 
 | โมดูล | สถานะ | รายละเอียดล่าสุด | งานที่ยังเหลือ |
 |---|---:|---|---|
-| GitHub Pages | 🧪 | Phase 1–10 อยู่ใน `main`; Phase 11 รอ Merge | ตรวจ Repeat Purchase Insights หลัง Deploy |
+| GitHub Pages | 🧪 | Phase 1–11 อยู่ใน `main` หลัง Merge PR #18 | ตรวจ Repeat Purchase Insights บนอุปกรณ์จริง |
 | Supabase Health Check | 🧪 | GitHub Actions อ่านฐานข้อมูลทุก 2 วันและรันเองได้ | ตรวจ Workflow Run แรก; Scheduled Workflow อาจถูกปิดหาก Repository ไม่มี Activity 60 วัน |
 | FreshMart Design System | 🧪 | Custom CSS, Tokens และ Components ใหม่; Bootstrap ใช้เฉพาะ Grid/Modal/Utilities | ทดสอบภาพจริงบน LINE iOS/Android และจอ Desktop |
 | FreshMart Admin PWA | 🧪 | Phase 11 อัปเดต App Shell v11 และ Customer Center แสดงโอกาสเสนอขายซ้ำ | ทดสอบอัปเดต Service Worker บนอุปกรณ์จริง |
@@ -222,6 +222,16 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 14 สิงหาคม 2026 — Developer-ready Repository
+
+- Phase 11 Merge เข้า `main` แล้วผ่าน PR #18 (`549cdd8`)
+- เพิ่ม `docs/DEVELOPMENT.md` สำหรับ clone, run, test, architecture และ Supabase workflow
+- เพิ่ม `CONTRIBUTING.md` และ Pull Request template เพื่อกำหนด Definition of Done ร่วมกัน
+- เพิ่ม development server และคำสั่ง `npm run dev`, `npm test`, `npm run check`
+- เพิ่ม automated repository check สำหรับไฟล์ขยะ secret ที่อาจหลุด และ local link ที่เสีย
+- เพิ่ม GitHub Actions ให้รัน quality checks อัตโนมัติเมื่อเปิด Pull Request หรือ push เข้า `main`
+- ขยาย `.gitignore`, `.editorconfig` และ `.gitattributes` เพื่อให้ไฟล์จากแต่ละเครื่องสม่ำเสมอ
 
 ### 8 สิงหาคม 2026 — Phase 11 Repeat Purchase Insights
 
