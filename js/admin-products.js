@@ -3,6 +3,7 @@ import {
 } from './supabaseClient.js';
 import { hasValidGtinCheckDigit, normalizeBarcode } from './barcode.js';
 import { cameraErrorDetails } from './camera.js';
+import { matchesImportMarket } from './product-market.js';
 
 const form = document.querySelector('[data-product-form]');
 const list = document.querySelector('[data-products-list]');
@@ -118,8 +119,11 @@ function render() {
     const searchable = [
       product.name,
       product.brand,
+      product.description,
+      product.data_source,
+      product.source_product_url,
       ...product.variants.flatMap(v => [v.variant_name, v.barcode])
-    ].filter(Boolean).join(' ').toLowerCase();
+    ].filter(Boolean).join(' ').toLocaleLowerCase('th-TH');
     const matchesTerm = !term || searchable.includes(term);
     const low = product.variants.some(v => v.is_active && v.stock_qty <= v.low_stock_threshold);
     const matchesStatus = !status ||
@@ -527,7 +531,7 @@ async function openScanner() {
   }
 }
 
-async function importCatalogFile(file, thaiPrefixOnly, onProgress) {
+async function importCatalogFile(file, marketMode, onProgress) {
   let read = 0;
   let imported = 0;
   let rejected = 0;
@@ -555,7 +559,7 @@ async function importCatalogFile(file, thaiPrefixOnly, onProgress) {
         for (const row of results.data || []) {
           read += 1;
           const barcode = normalizeBarcode(row.code || row.barcode);
-          if (!hasValidGtinCheckDigit(barcode) || (thaiPrefixOnly && !barcode.startsWith('885'))) {
+          if (!hasValidGtinCheckDigit(barcode) || !matchesImportMarket(row, barcode, marketMode)) {
             skipped += 1;
             continue;
           }
@@ -644,7 +648,7 @@ document.querySelector('[data-start-import]').onclick = async event => {
   try {
     const summary = await importCatalogFile(
       file,
-      document.querySelector('[data-thai-prefix-only]').checked,
+      document.querySelector('[data-catalog-market-filter]').value,
       stats => {
         count.textContent = `${stats.imported.toLocaleString('th-TH')} สำเร็จ / อ่าน ${stats.read.toLocaleString('th-TH')}`;
       }
