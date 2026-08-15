@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { searchProducts } from '../js/product-search.js';
+import { normalizeSearchText, searchProducts } from '../js/product-search.js';
 import {
   hasThailandCountrySignal,
   hasGs1ThailandPrefix,
@@ -52,4 +52,20 @@ test('fixture covers Thai names, brands, countries, categories, and non-885 barc
   assert.equal(searchProducts(searchableProducts, 'FreshMart Test').length, 1);
   assert.equal(searchProducts(searchableProducts, '4006381333931').length, 1);
   assert.equal(searchProducts(searchableProducts, '', 'snacks').length, 4);
+  assert.ok(searchProducts(searchableProducts, 'น้ำ มะพร้าว').length >= 1);
+  assert.equal(normalizeSearchText('  Thai-Hom Mali  '), 'thaihommali');
+});
+
+test('real Open Food Facts fixture covers products with missing Thai names and mixed country tags', () => {
+  const fixturePath = path.join(process.cwd(), 'tests', 'fixtures', 'thailand-products-real.tsv');
+  const [headerLine, ...rows] = fs.readFileSync(fixturePath, 'utf8').trim().split('\n');
+  const headers = headerLine.split('\t');
+  const products = rows.map(line => Object.fromEntries(line.split('\t').map((value, index) => [headers[index], value])));
+  assert.equal(products.length, 19);
+  assert.ok(products.some(product => product.product_name_th === '' && product.product_name));
+  assert.ok(products.some(product => product.countries_tags.includes('en:laos|en:thailand')));
+  assert.ok(products.some(product => !product.code.startsWith('885')));
+  assert.ok(searchProducts(products, 'เมจิไฮโปรตีน').length >= 1);
+  assert.equal(searchProducts(products, 'Nestle Pure Life').length, 1);
+  assert.equal(searchProducts(products, '8850124003850').length, 1);
 });
