@@ -30,10 +30,9 @@ test('backend rollout preserves checkout for an already deployed client', async 
 
 test('LIFF API notifies transfer orders only after a slip is persisted', async () => {
   const edge = await read('supabase/functions/liff-api/index.ts');
-  assert.match(edge, /select\("id,status,slip_path"\)\.single\(\)/);
-  assert.match(edge, /storage\.from\("payment-slips"\)\.remove\(\[path\]\)/);
+  assert.match(edge, /persistPaymentSlip/);
   assert.match(edge, /await notifyAdmin\(order, customer\);[\s\S]*return json\(\{ success: true, slipPath: path \}\)/);
-  assert.match(edge, /if \(!\["bank_transfer", "promptpay"\]\.includes\(order\.payment_method\)\)/);
+  assert.match(edge, /shouldNotifyAdminAfterOrder\(order\.payment_method\)/);
 });
 
 test('customer-facing LIFF reads avoid wildcard order and settings selects', async () => {

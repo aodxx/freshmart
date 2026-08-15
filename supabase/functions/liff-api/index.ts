@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { persistPaymentSlip, shouldNotifyAdminAfterOrder } from "./payment-recovery.mjs";
 
 const ALLOWED_ORIGIN = "https://aodxx.github.io";
 const LINE_CHANNEL_ID = "2010025658";
@@ -134,23 +135,22 @@ Deno.serve(async (req: Request) => {
 
       const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
       const path = `${customer.id}/${orderId}/${crypto.randomUUID()}.${extension}`;
-      const { error: uploadError } = await admin.storage.from("payment-slips")
-        .upload(path, file, { contentType: file.type, upsert: false });
-      if (uploadError) throw uploadError;
-
-      const { data: payment, error: paymentError } = await admin.from("payments").update({
-        slip_path: path,
-        status: "submitted",
-        submitted_at: new Date().toISOString(),
-        confirmed_at: null,
-        confirmed_by: null,
-        rejection_reason: null,
-      }).eq("order_id", orderId).select("id,status,slip_path").single();
-
-      if (paymentError || !payment) {
-        await admin.storage.from("payment-slips").remove([path]);
-        throw paymentError || new Error("PAYMENT_NOT_FOUND");
-      }
+      await persistPaymentSlip({
+        storage: admin.storage.from("payment-slips"),
+        payments: admin.from("payments"),
+        orderId,
+        path,
+        file,
+        contentType: file.type,
+        paymentUpdate: {
+          slip_path: path,
+          status: "submitted",
+          submitted_at: new Date().toISOString(),
+          confirmed_at: null,
+          confirmed_by: null,
+          rejection_reason: null,
+        },
+      });
 
       await notifyAdmin(order, customer);
       return json({ success: true, slipPath: path });
@@ -320,7 +320,7 @@ Deno.serve(async (req: Request) => {
         .eq("id", orderId).single();
 
       // Transfer/PromptPay orders notify only after a slip is stored successfully.
-      if (!["bank_transfer", "promptpay"].includes(order.payment_method)) {
+      if (shouldNotifyAdminAfterOrder(order.payment_method)) {
         await notifyAdmin(order, customer);
       }
       return json({ success: true, order });
