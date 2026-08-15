@@ -12,6 +12,7 @@ const modal = new bootstrap.Modal('#productModal');
 const scannerModalElement = document.querySelector('#scannerModal');
 const scannerModal = new bootstrap.Modal(scannerModalElement);
 const importModal = new bootstrap.Modal('#catalogImportModal');
+const catalogSearchModal = new bootstrap.Modal('#catalogSearchModal');
 const scannerStatus = document.querySelector('[data-scanner-status]');
 const startScannerButton = document.querySelector('[data-start-scanner]');
 const stopScannerButton = document.querySelector('[data-stop-scanner]');
@@ -31,7 +32,9 @@ function friendlyCatalogError(error) {
     INVALID_SESSION: 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่',
     ADMIN_REQUIRED: 'บัญชีนี้ไม่มีสิทธิ์จัดการสินค้า',
     PRODUCT_NAME_REQUIRED: 'รายการนี้ไม่มีชื่อสินค้า',
-    OPEN_FOOD_FACTS_429: 'ค้นหาถี่เกินไป กรุณารอสักครู่แล้วลองใหม่'
+    OPEN_FOOD_FACTS_429: 'ค้นหาถี่เกินไป กรุณารอสักครู่แล้วลองใหม่',
+    SEARCH_QUERY_TOO_SHORT: 'กรุณากรอกคำค้นอย่างน้อย 2 ตัวอักษร',
+    OPEN_FOOD_FACTS_SEARCH_UNAVAILABLE: 'แหล่งข้อมูลสินค้าไม่พร้อมใช้งาน กรุณาลองใหม่ภายหลัง'
   };
   return dictionary[message] || message;
 }
@@ -172,6 +175,7 @@ function openForm(product = null, seed = null) {
   form.reset();
   rows.innerHTML = '';
   form.id.value = product?.id || '';
+  form.is_active.value = product ? String(product.is_active) : 'false';
   form.current_image_path.value = product?.image_path || '';
   form.external_image_url.value = product?.image_url || seed?.image_url || '';
   form.source_product_url.value = product?.source_product_url || seed?.source_url || '';
@@ -213,6 +217,38 @@ function openForm(product = null, seed = null) {
   if (previewSource) preview.src = productImageUrl(previewSource);
   document.querySelector('[data-form-title]').textContent = product ? 'แก้ไขสินค้า' : 'เพิ่มสินค้า';
   modal.show();
+}
+
+function renderCatalogSearchResults(results = []) {
+  const node = document.querySelector('[data-catalog-search-results]');
+  if (!results.length) {
+    node.innerHTML = '<div class="text-secondary text-center py-4">ไม่พบสินค้าในตลาดไทยจากคำค้นนี้</div>';
+    return;
+  }
+  node.innerHTML = results.map((item, index) => `<article class="border rounded-3 p-3 mb-2">
+    <div class="d-flex gap-3 align-items-start">
+      ${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="" width="54" height="54" class="rounded border" style="object-fit:cover">` : '<div class="product-image rounded" style="width:54px;height:54px;flex:none"><span>🛒</span></div>'}
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between gap-2">
+          <div>
+            <strong>${escapeHtml(item.name || 'ไม่มีชื่อสินค้า')}</strong>
+            ${item.brand ? `<div class="small text-secondary">${escapeHtml(item.brand)}</div>` : ''}
+          </div>
+          <span class="badge text-bg-light border">${item.match === 'catalog' ? 'ใน Catalog' : 'Open Food Facts'}</span>
+        </div>
+        <div class="small text-secondary mt-1">${escapeHtml([item.category_name, item.quantity_label, item.barcode].filter(Boolean).join(' • '))}</div>
+        <button type="button" class="btn btn-sm btn-primary mt-2" data-catalog-select="${index}">ใช้เป็นข้อมูลตั้งต้น</button>
+      </div>
+    </div>
+  </article>`).join('');
+  node.querySelectorAll('[data-catalog-select]').forEach(button => {
+    button.onclick = () => {
+      const selected = results[Number(button.dataset.catalogSelect)];
+      catalogSearchModal.hide();
+      openForm(null, selected);
+      toast('info', 'กรอกหมวดหมู่และราคาเพื่อบันทึกสินค้า สินค้านี้จะเริ่มเป็นสถานะปิดขาย');
+    };
+  });
 }
 
 async function loadData() {
@@ -598,6 +634,12 @@ async function importCatalogFile(file, marketMode, onProgress) {
 
 document.querySelector('[data-new-product]').onclick = () => openForm();
 document.querySelector('[data-scan-product]').onclick = openScanner;
+document.querySelector('[data-search-catalog]').onclick = () => {
+  document.querySelector('[data-catalog-search-form]').reset();
+  renderCatalogSearchResults([]);
+  catalogSearchModal.show();
+  setTimeout(() => document.querySelector('[data-catalog-query]').focus(), 150);
+};
 document.querySelector('[data-import-catalog]').onclick = () => {
   document.querySelector('[data-import-result]').classList.add('d-none');
   importModal.show();
@@ -628,6 +670,21 @@ document.querySelector('[data-barcode-form]').addEventListener('submit', async e
     await lookupBarcode(event.currentTarget.barcode.value);
   } catch (error) {
     scannerStatus.textContent = friendlyCatalogError(error);
+    toast('error', friendlyCatalogError(error));
+  } finally {
+    button.disabled = false;
+  }
+});
+document.querySelector('[data-catalog-search-form]').addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  const query = event.currentTarget.query.value.trim();
+  button.disabled = true;
+  try {
+    const data = await invokeCatalog({ action: 'search', query });
+    renderCatalogSearchResults(data.results || []);
+  } catch (error) {
+    renderCatalogSearchResults([]);
     toast('error', friendlyCatalogError(error));
   } finally {
     button.disabled = false;
