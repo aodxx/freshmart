@@ -251,6 +251,41 @@ button, input, select, textarea { font: inherit; }
   font: 700 .62rem/1 var(--fm-display);
 }
 
+/* Developer credit — compact, tappable, and clear of the mobile navigation. */
+.developer-credit {
+  display: flex;
+  width: fit-content;
+  min-height: 42px;
+  margin: 10px auto 96px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 5px 4px 13px;
+  border: 1px solid var(--fm-sky-100);
+  border-radius: 999px;
+  color: var(--fm-ink-soft);
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 8px 20px rgba(27,79,103,.08);
+  font: 600 .76rem/1 var(--fm-display);
+  letter-spacing: .01em;
+}
+.developer-credit__label strong { color: var(--fm-sky-700); font-weight: 800; }
+.developer-credit__facebook {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #1877f2;
+  box-shadow: 0 5px 12px rgba(24,119,242,.28);
+  text-decoration: none;
+  transition: transform .18s var(--fm-ease), background .18s var(--fm-ease), box-shadow .18s var(--fm-ease);
+}
+.developer-credit__facebook:hover { color: #fff; background: #0b65d6; box-shadow: 0 7px 15px rgba(24,119,242,.35); transform: translateY(-1px); }
+.developer-credit__facebook:active { transform: scale(.94); }
+.developer-credit__facebook:focus-visible { outline: 3px solid rgba(57,183,236,.45); outline-offset: 3px; }
+.developer-credit__facebook svg { width: 20px; height: 20px; fill: currentColor; }
+
 /* Hero */
 .store-hero {
   position: relative;
@@ -687,6 +722,7 @@ textarea.form-control { min-height: 108px; }
   .search-dock { grid-template-columns: 1fr 260px; margin-inline: 34px; }
   .bottom-nav { right: 24px; bottom: 20px; left: auto; width: 330px; margin: 0; }
   body.customer-app { padding-bottom: 40px; }
+  .developer-credit { margin-bottom: 28px; }
 }
 
 @media (max-width: 767.98px) {
