@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { persistPaymentSlip, shouldNotifyAdminAfterOrder } from "./payment-recovery.mjs";
 
 const ALLOWED_ORIGIN = "https://aodxx.github.io";
 const LINE_CHANNEL_ID = "2010025658";
@@ -39,6 +40,14 @@ function productId(value: unknown) {
   return id;
 }
 
+function requestId(value: unknown) {
+  const id = String(value || "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    throw new Error("INVALID_CHECKOUT_REQUEST_ID");
+  }
+  return id;
+}
+
 async function verifyLineUser(accessToken: string) {
   if (!accessToken || accessToken.length < 20) throw new Error("LINE_LOGIN_REQUIRED");
 
@@ -67,7 +76,9 @@ async function getCustomer(accessToken: string) {
     display_name: profile.displayName,
     picture_url: profile.pictureUrl ?? null,
     last_seen_at: new Date().toISOString(),
-  }, { onConflict: "line_user_id" }).select("*").single();
+  }, { onConflict: "line_user_id" })
+    .select("id,line_user_id,display_name,picture_url,phone,is_phone_verified,last_seen_at,created_at,updated_at")
+    .single();
   if (error) throw error;
   return data;
 }
@@ -113,24 +124,35 @@ Deno.serve(async (req: Request) => {
       if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
         throw new Error("INVALID_SLIP_TYPE");
       }
-      const { data: order } = await admin.from("orders").select("id,status")
+      const { data: order } = await admin.from("orders")
+        .select("id,order_number,total_amount,status,payment_method,fulfillment_method")
         .eq("id", orderId).eq("customer_id", customer.id).single();
       if (!order) throw new Error("ORDER_NOT_FOUND");
       if (["completed", "cancelled"].includes(order.status)) throw new Error("ORDER_CLOSED");
+      if (!["bank_transfer", "promptpay"].includes(order.payment_method)) {
+        throw new Error("SLIP_NOT_REQUIRED");
+      }
+
       const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
       const path = `${customer.id}/${orderId}/${crypto.randomUUID()}.${extension}`;
-      const { error: uploadError } = await admin.storage.from("payment-slips")
-        .upload(path, file, { contentType: file.type, upsert: false });
-      if (uploadError) throw uploadError;
-      const { error: paymentError } = await admin.from("payments").update({
-        slip_path: path,
-        status: "submitted",
-        submitted_at: new Date().toISOString(),
-        confirmed_at: null,
-        confirmed_by: null,
-        rejection_reason: null,
-      }).eq("order_id", orderId);
-      if (paymentError) throw paymentError;
+      await persistPaymentSlip({
+        storage: admin.storage.from("payment-slips"),
+        payments: admin.from("payments"),
+        orderId,
+        path,
+        file,
+        contentType: file.type,
+        paymentUpdate: {
+          slip_path: path,
+          status: "submitted",
+          submitted_at: new Date().toISOString(),
+          confirmed_at: null,
+          confirmed_by: null,
+          rejection_reason: null,
+        },
+      });
+
+      await notifyAdmin(order, customer);
       return json({ success: true, slipPath: path });
     }
 
@@ -140,9 +162,12 @@ Deno.serve(async (req: Request) => {
 
     if (action === "bootstrap") {
       const [{ data: settings }, { data: addresses }, { data: latestDelivery }] = await Promise.all([
-        admin.from("store_settings").select("*").eq("id", 1).single(),
-        admin.from("customer_addresses").select("*")
-          .eq("customer_id", customer.id).order("is_default", { ascending: false }),
+        admin.from("store_settings").select(
+          "id,store_name,delivery_fee,free_delivery_minimum,bank_name,bank_account_name,bank_account_number,promptpay_number,updated_at",
+        ).eq("id", 1).single(),
+        admin.from("customer_addresses").select(
+          "id,label,recipient_name,phone,address,latitude,longitude,is_default,created_at,updated_at",
+        ).eq("customer_id", customer.id).order("is_default", { ascending: false }),
         admin.from("orders")
           .select(
             "recipient_name,recipient_phone,shipping_address,delivery_latitude,delivery_longitude,created_at",
@@ -203,7 +228,9 @@ Deno.serve(async (req: Request) => {
       if (!/^0\d{8,9}$/.test(phone)) throw new Error("INVALID_PHONE");
       const { data, error } = await admin.from("customers")
         .update({ phone, is_phone_verified: false })
-        .eq("id", customer.id).select("*").single();
+        .eq("id", customer.id)
+        .select("id,line_user_id,display_name,picture_url,phone,is_phone_verified,last_seen_at,created_at,updated_at")
+        .single();
       if (error) throw error;
       return json({ success: true, customer: data });
     }
@@ -261,7 +288,11 @@ Deno.serve(async (req: Request) => {
       if ((latitude === null) !== (longitude === null)) {
         throw new Error("INVALID_GPS_PAIR");
       }
-      const { data: orderId, error } = await admin.rpc("place_liff_order_v2", {
+      const checkoutRequestId = payload.checkout_request_id
+        ? requestId(payload.checkout_request_id)
+        : null;
+      const rpcName = checkoutRequestId ? "place_liff_order_v3" : "place_liff_order_v2";
+      const rpcPayload = {
         p_customer_id: customer.id,
         p_items: payload.items,
         p_fulfillment_method: payload.fulfillment_method,
@@ -278,14 +309,20 @@ Deno.serve(async (req: Request) => {
         p_delivery_location_source: payload.delivery_location_source || null,
         p_save_address: Boolean(payload.save_address),
         p_address_label: String(payload.address_label || "บ้าน").slice(0, 40),
-      });
+        ...(checkoutRequestId ? { p_checkout_request_id: checkoutRequestId } : {}),
+      };
+      const { data: orderId, error } = await admin.rpc(rpcName, rpcPayload);
       if (error) throw error;
       const { data: order } = await admin.from("orders")
         .select(
           "id,order_number,total_amount,delivery_fee,status,payment_method,fulfillment_method,delivery_latitude,delivery_longitude",
         )
         .eq("id", orderId).single();
-      await notifyAdmin(order, customer);
+
+      // Transfer/PromptPay orders notify only after a slip is stored successfully.
+      if (shouldNotifyAdminAfterOrder(order.payment_method)) {
+        await notifyAdmin(order, customer);
+      }
       return json({ success: true, order });
     }
 
@@ -303,7 +340,7 @@ Deno.serve(async (req: Request) => {
     if (action === "list_orders") {
       const { data, error } = await admin.from("orders")
         .select(
-          "*,order_items(*),payments(id,status,method,amount,slip_path,rejection_reason,submitted_at,confirmed_at),order_events(id,event_type,from_status,to_status,note,created_at),customer_receivables(id,original_amount,paid_amount,balance_amount,status,due_at,note,created_at,receivable_payments(id,amount,method,note,paid_at,created_at))",
+          "id,order_number,created_at,status,total_amount,fulfillment_method,payment_method,delivery_provider,tracking_number,realtime_token,order_items(id,product_name,variant_name,quantity,unit_price,line_total),payments(id,status,method,amount,slip_path,rejection_reason,submitted_at,confirmed_at),order_events(id,event_type,from_status,to_status,note,created_at),customer_receivables(id,original_amount,paid_amount,balance_amount,status,due_at,note,created_at,receivable_payments(id,amount,method,note,paid_at,created_at))",
         )
         .eq("customer_id", customer.id).order("created_at", { ascending: false });
       if (error) throw error;

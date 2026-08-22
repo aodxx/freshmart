@@ -3,9 +3,9 @@
 เอกสารนี้เป็นจุดอ้างอิงกลางสำหรับติดตามสถานะของโปรเจกต์ **ร้านชำเจ๊ดี / FreshMart**  
 ใช้บันทึกสิ่งที่ทำเสร็จแล้ว บั๊กที่พบ การตัดสินใจสำคัญ งานค้าง และจุดเริ่มงานครั้งถัดไป
 
-> อัปเดตล่าสุด: 14 สิงหาคม 2026
-> สถานะภาพรวม: **กำลังพัฒนา — Phase 1–11 Merge เข้า `main` แล้ว; รอทดสอบ Repeat Purchase Insights และเส้นทางสั่งซื้อจริงบนอุปกรณ์**
-> จุดอ้างอิง GitHub: `main@549cdd8` (PR #18)
+> อัปเดตล่าสุด: 15 สิงหาคม 2026
+> สถานะภาพรวม: **กำลัง Stabilization — PR #24 ยังเปิดอยู่และยังไม่ merge; migration checkout reliability และ `liff-api` v10 ถูก deploy เพื่อรองรับ rollout แบบ backward-compatible**
+> จุดอ้างอิง GitHub: `main@6bc1a4b` ก่อน PR #24; branch `agent/stabilize-checkout-reliability@11fc991`
 
 ---
 
@@ -15,10 +15,10 @@
 
 | จุดตรวจ | สถานะที่ยืนยันแล้ว |
 |---|---|
-| GitHub `main` | Merge commit ล่าสุด `549cdd8` จาก PR #18 (Phase 11) |
-| Branch งานปัจจุบัน | `agent/developer-ready-cleanup` — จัด onboarding, คำสั่งตรวจสอบ และกติกาความสะอาด repository |
-| GitHub Pages | Phase 1–11 อยู่ใน `main`; รอทดสอบ Repeat Purchase Insights บนอุปกรณ์จริง |
-| Supabase Backend | Migration `repeat_purchase_insights`, `repeat_purchase_insights_tuning` Deploy แล้ว; Project `ACTIVE_HEALTHY` |
+| GitHub `main` | จุดฐานก่อน Stabilization คือ `6bc1a4b`; PR #24 ยังเปิดและห้าม merge ก่อน Technical Lead อนุมัติ |
+| Branch งานปัจจุบัน | `agent/stabilize-checkout-reliability@11fc991` — checkout idempotency, payment-slip recovery และ least-privilege projection |
+| GitHub Pages | ยังคง frontend เดิมบน `main`; ไม่ publish checkout frontend ของ PR #24 ระหว่าง Stabilization |
+| Supabase Backend | Migration `checkout_reliability` และ `liff-api` v10 deploy แล้ว; RPC ใหม่เป็น service-role-only และ liff-api รองรับ client เดิม |
 | Database migrations | ไฟล์ Migration ล่าสุดอยู่ใน `supabase/migrations/` และต้อง Deploy แยกจาก GitHub Pages |
 | Edge Functions | Source อยู่ใน `supabase/functions/`; ตรวจเวอร์ชันที่ Deploy ก่อนแก้ไขทุกครั้ง |
 | งานแรกที่ควรทำ | ทดสอบ Phase 11: เปิด Customer Center ตรวจสินค้า Variant รอบซื้อ วันที่แนะนำ และตัวกรองถึงกำหนดเสนอขายซ้ำ |
@@ -222,6 +222,17 @@ erDiagram
 ---
 
 ## 6. ประวัติการเปลี่ยนแปลง
+
+### 15 สิงหาคม 2026 — Checkout Stabilization (PR #24 ยังไม่ merge)
+
+- เพิ่ม `checkout_request_id`, partial unique index และ `place_liff_order_v3` สำหรับ idempotency ของ checkout
+- ใช้ advisory transaction lock และผ่าน smoke test แบบ rollback: retry คำขอเดิมคืน order เดิมและตัดสต็อกเพียงครั้งเดียว
+- แก้ compatibility ของ backend เพื่อให้ frontend production เดิมใช้ `place_liff_order_v2` ได้จนกว่าจะ publish frontend ใหม่
+- ย้าย payment-slip compensation logic ไปยังโมดูลที่ทดสอบได้; ทดสอบ upload สำเร็จแต่ payment update ล้มเหลวแล้วลบไฟล์ที่เพิ่ง upload
+- แยก notification timing: cash/pay-at-store แจ้งได้หลังสร้างออเดอร์; bank transfer/PromptPay รอจน persist สลิปสำเร็จ
+- แทนที่ broad customer-facing wildcard selects ใน LIFF bootstrap/order history ด้วย explicit projection
+- Automated test suite และ repository checks ผ่าน 93/93; migration `checkout_reliability` และ `liff-api` v10 deploy บน production แล้ว
+- งานยังรอหลักฐาน external integration ด้วย session LINE/test destination และการอนุมัติจาก Technical Lead; ไม่มีการ merge หรือ deploy frontend
 
 ### 14 สิงหาคม 2026 — Developer-ready Repository
 
