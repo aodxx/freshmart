@@ -1,0 +1,9 @@
+# FreshMart — Product Data Retrieval Workflow (Apify Fallback Chain)
+
+> อัปเดตล่าสุด: 27 พฤศจิกายน 2026
+> โมดูล: `supabase/functions/product-catalog` (Edge Function) + หน้าจอ admin Products
+
+## 1. ภาพรวม
+
+Workflow รับ **บาร์โค้ด (GTIN: EAN-8, UPC-A, EAN-13, GTIN-14)** หรือ **ชื่อสินค้า** จากหน้า Admin Products
+(สแกน/พพมพ์บาร์โค้ดที่สแกน) ติรเลบ。〖กลว〆〆〆〒〆〚〒〖〖〖〖〖〖〖〖〖〖〖〖
